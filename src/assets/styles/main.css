@@ -1,3 +1,10 @@
+@import './main.css';
+@import './main_dark.css';
+@import './signin.css';
+@import './signin_dark.css';
+@import './signup.css';
+@import './signup_dark.css';
+
 * {
   margin: 0;
   padding: 0;
@@ -819,8 +826,12 @@ body {
   color: #94A6BE;
   font-size: 14px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 16px;
   text-transform: uppercase;
+}
+
+.column__title[data-status="Готово"] + .cards .card__title {
+  text-decoration: line-through;
 }
 
 .cards {
@@ -862,7 +873,7 @@ body {
 }
 .card__theme p {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 10px;
 }
 .card__btn {
@@ -1087,10 +1098,3 @@ body {
     display: block;
   }
 }
-
-@import './main.css';
-@import './main_dark.css';
-@import './signin.css';
-@import './signin_dark.css';
-@import './signup.css';
-@import './signup_dark.css';
