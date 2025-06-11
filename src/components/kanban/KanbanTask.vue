@@ -2,7 +2,7 @@
   <div class="cards__item">
     <div class="cards__card card">
       <div class="card__group">
-        <div :class="['card__theme', getThemeClass(task.topic)]">
+        <div :class="['card__theme', themeClass]">
           <p>{{ task.topic }}</p>
         </div>
         <a href="#popBrowse" target="_self">
@@ -46,11 +46,9 @@ export default {
         month: '2-digit',
         year: 'numeric'
       });
-    }
-  },
-  methods: {
-    getThemeClass(topic) {
-      // Генерируем класс на основе темы
+    },
+    themeClass() {
+      // Объект с соответствием темы
       const themeMap = {
         'Web Design': '_orange',
         'Research': '_green',
@@ -61,8 +59,20 @@ export default {
         'UI/UX': '_orange',
         'Backend': '_gray'
       };
-      return themeMap[topic] || '_gray';
+      return themeMap[this.task.topic] || '_gray';
     }
   }
 };
 </script>
+
+<style scoped>
+/* Специфичные стили для компонента */
+.cards__card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cards__card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+</style>

@@ -1098,3 +1098,17 @@ body {
     display: block;
   }
 }
+
+/* Центрирование основного контента */
+.main__block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Улучшение внешнего вида колонок */
+.main__content {
+  display: flex;
+  gap: 20px;
+  padding: 20px 0;
+}

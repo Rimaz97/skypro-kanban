@@ -25,3 +25,18 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+/* Специфичные стили для колонки */
+.column {
+  transition: all 0.3s ease;
+}
+
+.column:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dark-theme .column:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+</style>
