@@ -730,7 +730,7 @@ position: relative;
 	display: block;
 }
 ._light {
-	display: none;
+	display: block;
 }
 
 .header {
@@ -947,7 +947,7 @@ box-shadow: 0px 10px 39px 0px rgba(148, 166, 190, 0.40);
     display: flex;
     overflow-y: auto;
   }
-  
+
 }
 @media screen and (max-width: 660px) {
   .pop-new-card {
@@ -1000,7 +1000,7 @@ box-shadow: 0px 10px 39px 0px rgba(148, 166, 190, 0.40);
   	height: 42px;
   	font-size: 14px;
   }
-    
+
   .pop-browse {
     top: 70px;
   }
@@ -1015,7 +1015,7 @@ box-shadow: 0px 10px 39px 0px rgba(148, 166, 190, 0.40);
     display: block;
   }
   .pop-browse__calendar {
-    
+
     width: 100%;
   }
 }
