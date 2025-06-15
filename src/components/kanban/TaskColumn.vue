@@ -4,30 +4,32 @@
       <p>{{ title }}</p>
     </div>
     <div class="cards">
-      <KanbanTask
-        v-for="task in tasks"
-        :key="task.id"
-        :task="task"
-      />
+      <KanbanTask v-for="task in tasks" :key="task.id" :task="task" @open-task="openTask" />
     </div>
   </div>
 </template>
 
 <script>
-import KanbanTask from './KanbanTask.vue';
+import KanbanTask from './KanbanTask.vue'
 
 export default {
   name: 'TaskColumn',
   components: { KanbanTask },
   props: {
     title: String,
-    tasks: Array
-  }
-};
+    tasks: Array,
+  },
+  methods: {
+    openTask(task) {
+      console.log('TaskColumn emitting open-task for:', task)
+      this.$emit('open-task', task)
+    },
+  },
+}
 </script>
 
 <style scoped>
-/* Специфичные стили для колонки */
+/* Стили для колонки */
 .column {
   transition: all 0.3s ease;
 }
