@@ -25,8 +25,19 @@
     <TaskModal
       v-if="showTaskModal"
       :task="selectedTask"
+      :is-visible="showTaskModal"
       @delete-task="deleteTask"
       @close="showTaskModal = false"
+      @open-edit="openEditModal"
+    />
+
+    <EditTaskModal
+      v-if="showEditTaskModal"
+      :task="selectedTask"
+      :is-visible="showEditTaskModal"
+      @save="updateTask"
+      @delete-task="deleteTask"
+      @close="showEditTaskModal = false"
     />
   </div>
 </template>
@@ -37,6 +48,7 @@ import TaskDesk from '@/components/kanban/TaskDesk.vue'
 import ExitModal from '@/components/kanban/ExitModal.vue'
 import NewCardModal from '@/components/kanban/NewCardModal.vue'
 import TaskModal from '@/components/kanban/TaskModal.vue'
+import EditTaskModal from '@/components/kanban/EditTaskModal.vue'
 import { ref, computed } from 'vue'
 
 export default {
@@ -47,21 +59,33 @@ export default {
     ExitModal,
     NewCardModal,
     TaskModal,
+    EditTaskModal,
   },
   setup() {
     const showExitModal = ref(false)
     const showNewCardModal = ref(false)
     const showTaskModal = ref(false)
+    const showEditTaskModal = ref(false)
     const selectedTask = ref(null)
 
     const showOverlay = computed(() => {
-      return showExitModal.value || showNewCardModal.value || showTaskModal.value
+      return (
+        showExitModal.value ||
+        showNewCardModal.value ||
+        showTaskModal.value ||
+        showEditTaskModal.value
+      )
     })
 
     const openTaskModal = (task) => {
-      console.log('Opening task modal for:', task)
       selectedTask.value = task
       showTaskModal.value = true
+    }
+
+    const openEditModal = (task) => {
+      selectedTask.value = task
+      showTaskModal.value = false
+      showEditTaskModal.value = true
     }
 
     const createTask = (task) => {
@@ -69,9 +93,15 @@ export default {
       showNewCardModal.value = false
     }
 
+    const updateTask = (updatedTask) => {
+      console.log('Задача обновлена:', updatedTask)
+      showEditTaskModal.value = false
+    }
+
     const deleteTask = (taskId) => {
       console.log('Удалена задача:', taskId)
       showTaskModal.value = false
+      showEditTaskModal.value = false
     }
 
     const handleExit = () => {
@@ -83,16 +113,20 @@ export default {
       showExitModal.value = false
       showNewCardModal.value = false
       showTaskModal.value = false
+      showEditTaskModal.value = false
     }
 
     return {
       showExitModal,
       showNewCardModal,
       showTaskModal,
+      showEditTaskModal,
       showOverlay,
       selectedTask,
       openTaskModal,
+      openEditModal,
       createTask,
+      updateTask,
       deleteTask,
       handleExit,
       closeAllModals,

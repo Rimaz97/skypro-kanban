@@ -1,52 +1,73 @@
 <template>
-  <div class="pop-browse">
+  <div class="pop-browse" v-if="isVisible">
     <div class="pop-browse__container">
       <div class="pop-browse__block">
         <div class="pop-browse__content">
-          <div class="pop-browse__top-block">
+          <!-- Верхний блок: название и категория -->
+          <div class="top-block">
             <h3 class="pop-browse__ttl">{{ task.title }}</h3>
-            <a class="pop-browse__close" @click="closeModal">&#10006;</a>
+            <div class="category-badge" :style="{ backgroundColor: categoryColor }">
+              {{ task.topic }}
+            </div>
           </div>
 
-          <div class="pop-browse__wrap">
-            <div class="pop-browse__form">
-              <div class="form-browse__block">
-                <div class="task-info">
-                  <div class="task-info__item">
-                    <strong>Категория:</strong>
-                    <span :style="{ color: categoryColor }">{{ task.topic }}</span>
-                  </div>
+          <!-- Блок статуса -->
+          <div class="status-block">
+            <p class="status-label">Статус</p>
+            <div class="status-value">
+              {{ task.status }}
+            </div>
+          </div>
 
-                  <div class="task-info__item">
-                    <strong>Статус:</strong>
-                    <span>{{ task.status }}</span>
-                  </div>
+          <!-- Основной контент: описание и дата -->
+          <div class="content-block">
+            <!-- Левая часть: описание -->
+            <div class="description-section">
+              <p class="description-label">Описание задачи</p>
+              <p class="description-text">{{ task.description || 'Описание отсутствует' }}</p>
+            </div>
 
-                  <div class="task-info__item">
-                    <strong>Срок исполнения:</strong>
-                    <span>{{ formattedDate }}</span>
-                  </div>
-
-                  <div class="task-info__item">
-                    <strong>Описание:</strong>
-                    <p>{{ task.description || 'Описание отсутствует' }}</p>
-                  </div>
-                </div>
+            <!-- Правая часть: дата -->
+            <div class="date-section">
+              <p class="date-label">Даты</p>
+              <div class="date-value">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="13"
+                  height="13"
+                  viewBox="0 0 13 13"
+                  fill="none"
+                >
+                  <path
+                    d="M10.5625 2.03125H2.4375C1.7644 2.03125 1.21875 2.5769 1.21875 3.25V10.5625C1.21875 11.2356 1.7644 11.7812 2.4375 11.7812H10.5625C11.2356 11.7812 11.7812 11.2356 11.7812 10.5625V3.25C11.7812 2.5769 11.2356 2.03125 10.5625 2.03125Z"
+                    stroke="#94A6BE"
+                    stroke-width="0.8"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M11.7812 4.875H1.21875M3.25 1.21875V2.03125M9.75 1.21875V2.03125"
+                    stroke="#94A6BE"
+                    stroke-width="0.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <span>{{ formattedDate }}</span>
               </div>
             </div>
           </div>
 
-          <div class="pop-browse__btn-browse">
-            <button
-              class="btn-delete _hover01"
-              @click="deleteTask"
-            >
-              Удалить задачу
-            </button>
-            <button
-              class="btn-close _hover03"
-              @click="closeModal"
-            >
+          <!-- Блок кнопок -->
+          <div class="buttons-block">
+            <div class="left-buttons">
+              <button class="edit-btn" @click="openEditModal">
+                Редактировать задачу
+              </button>
+              <button class="delete-btn" @click="deleteTask">
+                Удалить задачу
+              </button>
+            </div>
+            <button class="close-btn" @click="closeModal">
               Закрыть
             </button>
           </div>
@@ -65,9 +86,13 @@ export default {
     task: {
       type: Object,
       required: true
+    },
+    isVisible: {
+      type: Boolean,
+      required: true
     }
   },
-  emits: ['delete-task', 'close'],
+  emits: ['delete-task', 'close', 'open-edit'],
   setup(props, { emit }) {
     // Форматирование даты
     const formattedDate = computed(() => {
@@ -83,13 +108,16 @@ export default {
     // Цвет категории
     const categoryColor = computed(() => {
       const colors = {
-        'Web Design': '#FF6D00',
-        'Research': '#06B16E',
-        'Copywriting': '#9A48F1',
-        'QA': '#06B16E',
-        'Deployment': '#00508a'
+        'Web Design': '#FFE4C2',
+        'Research': '#B4FDD1',
+        'Copywriting': '#E9D4FF',
+        'QA': '#B4FDD1',
+        'Deployment': '#bae1ff',
+        'Bug Fix': '#ffb3ba',
+        'UI/UX': '#FFE4C2',
+        'Backend': '#94A6BE'
       };
-      return colors[props.task.topic] || '#333';
+      return colors[props.task.topic] || '#eaeef6';
     });
 
     // Удаление задачи
@@ -104,17 +132,24 @@ export default {
       emit('close');
     };
 
+    // Открытие окна редактирования
+    const openEditModal = () => {
+      emit('open-edit', props.task);
+    };
+
     return {
       formattedDate,
       categoryColor,
       deleteTask,
-      closeModal
+      closeModal,
+      openEditModal
     };
   }
 };
 </script>
 
 <style scoped>
+/* Основные стили модального окна */
 .pop-browse {
   position: fixed;
   top: 0;
@@ -125,144 +160,246 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.pop-browse__container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .pop-browse__block {
+  max-width: 630px;
+  width: 100%;
   background: white;
-  border-radius: 12px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-  z-index: 300;
+  border: 0.7px solid #d4dbe5;
+  border-radius: 10px;
+  box-sizing: border-box;
+  padding: 40px 30px;
+  position: relative;
 }
 
 .dark-theme .pop-browse__block {
-  background: #20202C;
+  background: #20202c;
+  border-color: #4e5566;
 }
 
-.pop-browse__content {
-  position: relative;
-  padding: 30px;
+/* Верхний блок с заголовком и категорией */
+.top-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 570px;
+  margin-bottom: 18px;
 }
 
 .pop-browse__ttl {
-  font-size: 24px;
-  margin-bottom: 25px;
-  color: #333;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 23px;
+  color: #000;
+  margin: 0;
 }
 
 .dark-theme .pop-browse__ttl {
   color: #fff;
 }
 
-.pop-browse__close {
-  position: absolute;
-  top: 25px;
-  right: 25px;
-  font-size: 24px;
-  cursor: pointer;
-  transition: color 0.3s;
+.category-badge {
+  padding: 5px 14px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
 }
 
-.pop-browse__close:hover {
-  color: #ff0000;
+.dark-theme .category-badge {
+  color: #000;
 }
 
-/* Информация о задаче */
-.task-info__item {
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eee;
+/* Блок статуса */
+.status-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 570px;
+  margin-bottom: 18px;
 }
 
-.dark-theme .task-info__item {
-  border-bottom-color: #333;
+.status-label {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #000;
+  margin: 0;
 }
 
-.task-info__item strong {
-  display: block;
-  margin-bottom: 5px;
-  color: #666;
-}
-
-.dark-theme .task-info__item strong {
-  color: #aaa;
-}
-
-.task-info__item span,
-.task-info__item p {
-  font-size: 16px;
-  color: #333;
-}
-
-.dark-theme .task-info__item span,
-.dark-theme .task-info__item p {
+.dark-theme .status-label {
   color: #fff;
 }
 
-.task-info__item p {
-  margin-top: 10px;
-  line-height: 1.5;
-}
-
-/* Кнопки */
-.pop-browse__btn-browse {
+.status-value {
+  background: #94a6be;
+  color: white;
+  border-radius: 24px;
+  width: 136px;
+  height: 30px;
   display: flex;
-  gap: 15px;
-  margin-top: 30px;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.btn-delete,
-.btn-close {
+/* Блок контента */
+.content-block {
+  display: flex;
+  gap: 21px;
+  width: 100%;
+  max-width: 570px;
+  margin-bottom: 18px;
+}
+
+/* Секция описания */
+.description-section {
   flex: 1;
-  padding: 14px;
-  border-radius: 8px;
-  font-size: 16px;
+  max-width: 370px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.description-label {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #000;
+  margin: 0;
+}
+
+.dark-theme .description-label {
+  color: #fff;
+}
+
+.description-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  margin: 0;
+}
+
+.dark-theme .description-text {
+  color: #e0e0e0;
+}
+
+/* Секция даты */
+.date-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 168px;
+}
+
+.date-label {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #000;
+  margin: 0;
+}
+
+.dark-theme .date-label {
+  color: #fff;
+}
+
+.date-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #333;
+  font-size: 14px;
+}
+
+.dark-theme .date-value {
+  color: #e0e0e0;
+}
+
+/* Блок кнопок */
+.buttons-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 570px;
+}
+
+.left-buttons {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.edit-btn, .delete-btn, .close-btn {
+  height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 14px;
   font-weight: 500;
+  line-height: 10px;
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
-.btn-delete {
-  background: #ff4d4d;
-  color: white;
-  border: none;
-}
-
-.btn-delete:hover {
-  background: #e04545;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 77, 77, 0.3);
-}
-
-.btn-close {
+.edit-btn, .delete-btn {
+  border: 0.7px solid #565eef;
   background: transparent;
-  border: 1px solid #565EEF;
-  color: #565EEF;
+  color: #565eef;
+  padding: 10px 14px;
 }
 
-.btn-close:hover {
-  background: #565EEF;
-  color: white;
-  transform: translateY(-2px);
-}
-
-.dark-theme .btn-close {
+.dark-theme .edit-btn,
+.dark-theme .delete-btn {
   border-color: #7986ff;
   color: #7986ff;
 }
 
-.dark-theme .btn-close:hover {
+.edit-btn {
+  max-width: 176px;
+}
+
+.delete-btn {
+  width: 131px;
+}
+
+.close-btn {
+  background: #565eef;
+  color: white;
+  width: 86px;
+  padding: 10px 14px;
+}
+
+.dark-theme .close-btn {
   background: #7986ff;
+}
+
+/* Ховер-эффекты */
+.edit-btn:hover, .delete-btn:hover {
+  background: #565eef;
+  color: white;
+}
+
+.dark-theme .edit-btn:hover,
+.dark-theme .delete-btn:hover {
+  background: #7986ff;
+}
+
+.close-btn:hover {
+  background: #4549ca;
+}
+
+.dark-theme .close-btn:hover {
+  background: #5d65d4;
 }
 </style>
