@@ -24,35 +24,78 @@
             <!-- Левая часть: описание -->
             <div class="description-section">
               <p class="description-label">Описание задачи</p>
-              <p class="description-text">{{ task.description || 'Описание отсутствует' }}</p>
+              <div class="description-container">
+                <p class="description-text">{{ task.description || 'Описание отсутствует' }}</p>
+              </div>
             </div>
 
-            <!-- Правая часть: дата -->
+            <!-- Правая часть: календарь -->
             <div class="date-section">
               <p class="date-label">Даты</p>
-              <div class="date-value">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="13"
-                  height="13"
-                  viewBox="0 0 13 13"
-                  fill="none"
-                >
-                  <path
-                    d="M10.5625 2.03125H2.4375C1.7644 2.03125 1.21875 2.5769 1.21875 3.25V10.5625C1.21875 11.2356 1.7644 11.7812 2.4375 11.7812H10.5625C11.2356 11.7812 11.7812 11.2356 11.7812 10.5625V3.25C11.7812 2.5769 11.2356 2.03125 10.5625 2.03125Z"
-                    stroke="#94A6BE"
-                    stroke-width="0.8"
-                    stroke-linejoin="round"
-                  />
-                  <path
-                    d="M11.7812 4.875H1.21875M3.25 1.21875V2.03125M9.75 1.21875V2.03125"
-                    stroke="#94A6BE"
-                    stroke-width="0.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-                <span>{{ formattedDate }}</span>
+              <div class="calendar">
+                <div class="calendar-header">
+                  <span class="calendar-title">{{ calendarMonth }}</span>
+                  <div class="calendar-nav">
+                    <button class="nav-button prev" @click="prevMonth">
+                      <svg
+                        width="10"
+                        height="6"
+                        viewBox="0 0 10 6"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M9 5L5 1L1 5"
+                          stroke="#94A6BE"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
+                    <button class="nav-button next" @click="nextMonth">
+                      <svg
+                        width="10"
+                        height="6"
+                        viewBox="0 0 10 6"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M1 1L5 5L9 1"
+                          stroke="#94A6BE"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="weekdays">
+                  <div v-for="day in weekdays" :key="day" class="weekday">{{ day }}</div>
+                </div>
+
+                <div class="calendar-days">
+                  <div
+                    v-for="(day, index) in calendarDays"
+                    :key="index"
+                    class="day"
+                    :class="{
+                      'other-month': !day.isCurrentMonth,
+                      selected: day.date === selectedDate,
+                      today: day.isToday,
+                    }"
+                  >
+                    {{ day.day }}
+                  </div>
+                </div>
+
+                <div class="selected-date-display">
+                  <span class="label">Срок исполнения:</span>
+                  <span class="date">{{ formattedSelectedDate }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -60,16 +103,10 @@
           <!-- Блок кнопок -->
           <div class="buttons-block">
             <div class="left-buttons">
-              <button class="edit-btn" @click="openEditModal">
-                Редактировать задачу
-              </button>
-              <button class="delete-btn" @click="deleteTask">
-                Удалить задачу
-              </button>
+              <button class="edit-btn" @click="openEditModal">Редактировать задачу</button>
+              <button class="delete-btn" @click="deleteTask">Удалить задачу</button>
             </div>
-            <button class="close-btn" @click="closeModal">
-              Закрыть
-            </button>
+            <button class="close-btn" @click="closeModal">Закрыть</button>
           </div>
         </div>
       </div>
@@ -78,74 +115,180 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { ref, computed } from 'vue'
 
 export default {
   name: 'TaskModal',
   props: {
     task: {
       type: Object,
-      required: true
+      required: true,
     },
     isVisible: {
       type: Boolean,
-      required: true
-    }
+      required: true,
+    },
   },
   emits: ['delete-task', 'close', 'open-edit'],
   setup(props, { emit }) {
     // Форматирование даты
     const formattedDate = computed(() => {
-      if (!props.task.date) return 'Не установлен';
-      const date = new Date(props.task.date);
+      if (!props.task.date) return 'Не установлен'
+      const date = new Date(props.task.date)
       return date.toLocaleDateString('ru-RU', {
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric'
-      });
-    });
+        year: 'numeric',
+      })
+    })
 
     // Цвет категории
     const categoryColor = computed(() => {
       const colors = {
         'Web Design': '#FFE4C2',
-        'Research': '#B4FDD1',
-        'Copywriting': '#E9D4FF',
-        'QA': '#B4FDD1',
-        'Deployment': '#bae1ff',
+        Research: '#B4FDD1',
+        Copywriting: '#E9D4FF',
+        QA: '#B4FDD1',
+        Deployment: '#bae1ff',
         'Bug Fix': '#ffb3ba',
         'UI/UX': '#FFE4C2',
-        'Backend': '#94A6BE'
-      };
-      return colors[props.task.topic] || '#eaeef6';
-    });
+        Backend: '#94A6BE',
+      }
+      return colors[props.task.topic] || '#eaeef6'
+    })
+
+    // Данные для календаря
+    const selectedDate = ref(props.task.date || '')
+    const weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+
+    // Определяем текущую дату для календаря
+    const currentDate = computed(() => {
+      return props.task.date ? new Date(props.task.date) : new Date()
+    })
+
+    // Название месяца
+    const calendarMonth = computed(() => {
+      const months = [
+        'Январь',
+        'Февраль',
+        'Март',
+        'Апрель',
+        'Май',
+        'Июнь',
+        'Июль',
+        'Август',
+        'Сентябрь',
+        'Октябрь',
+        'Ноябрь',
+        'Декабрь',
+      ]
+      return months[currentDate.value.getMonth()]
+    })
+
+    // Год
+    const calendarYear = computed(() => {
+      return currentDate.value.getFullYear()
+    })
+
+    // Форматирование выбранной даты
+    const formattedSelectedDate = computed(() => {
+      if (!selectedDate.value) return 'Не выбрано'
+      const date = new Date(selectedDate.value)
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    })
+
+    // Генерация дней календаря
+    const calendarDays = computed(() => {
+      const days = []
+      const year = currentDate.value.getFullYear()
+      const month = currentDate.value.getMonth()
+
+      // Первый день месяца
+      const firstDay = new Date(year, month, 1)
+      // Последний день месяца
+      const lastDay = new Date(year, month + 1, 0)
+
+      // День недели для первого дня (0 - воскресенье, 1 - понедельник и т.д.)
+      let firstDayOfWeek = firstDay.getDay()
+      // Корректировка: если воскресенье, то это 0, но нам нужно чтобы было 7
+      if (firstDayOfWeek === 0) firstDayOfWeek = 7
+
+      // Пустые ячейки для дней предыдущего месяца
+      for (let i = 1; i < firstDayOfWeek; i++) {
+        days.push({ day: '', date: null, isCurrentMonth: false, isToday: false })
+      }
+
+      // Дни текущего месяца
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const dateObj = new Date(year, month, day)
+        dateObj.setHours(0, 0, 0, 0)
+        const isToday = dateObj.getTime() === today.getTime()
+
+        days.push({
+          date: dateString,
+          day: day,
+          isCurrentMonth: true,
+          isToday: isToday,
+        })
+      }
+
+      return days
+    })
+
+    // Навигация по месяцам
+    const prevMonth = () => {
+      const newDate = new Date(currentDate.value)
+      newDate.setMonth(newDate.getMonth() - 1)
+      currentDate.value = newDate
+    }
+
+    const nextMonth = () => {
+      const newDate = new Date(currentDate.value)
+      newDate.setMonth(newDate.getMonth() + 1)
+      currentDate.value = newDate
+    }
 
     // Удаление задачи
     const deleteTask = () => {
       if (confirm('Вы точно хотите удалить эту задачу?')) {
-        emit('delete-task', props.task.id);
+        emit('delete-task', props.task.id)
       }
-    };
+    }
 
     // Закрытие модалки
     const closeModal = () => {
-      emit('close');
-    };
+      emit('close')
+    }
 
     // Открытие окна редактирования
     const openEditModal = () => {
-      emit('open-edit', props.task);
-    };
+      emit('open-edit', props.task)
+    }
 
     return {
       formattedDate,
       categoryColor,
+      selectedDate,
+      weekdays,
+      calendarMonth,
+      calendarYear,
+      calendarDays,
+      formattedSelectedDate,
+      prevMonth,
+      nextMonth,
       deleteTask,
       closeModal,
-      openEditModal
-    };
-  }
-};
+      openEditModal,
+    }
+  },
+}
 </script>
 
 <style scoped>
@@ -210,7 +353,7 @@ export default {
 }
 
 .dark-theme .category-badge {
-  color: #000;
+  color: #000; /* Цвет текста остается черным для контраста */
 }
 
 /* Блок статуса */
@@ -279,47 +422,144 @@ export default {
   color: #fff;
 }
 
+.description-container {
+  border-radius: 8px;
+  background: #eaeef6;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  padding: 14px;
+}
+
+.dark-theme .description-container {
+  background: #151419;
+}
+
 .description-text {
   font-size: 14px;
-  line-height: 1.5;
+  font-weight: 400;
+  line-height: 16px;
   color: #333;
   margin: 0;
+  text-align: left;
+  align-self: flex-start;
 }
 
 .dark-theme .description-text {
   color: #e0e0e0;
 }
 
-/* Секция даты */
-.date-section {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-width: 168px;
+/* Секция календаря - точные стили как в окне создания */
+.calendar {
+  width: 182px;
+  margin-bottom: 0;
 }
 
 .date-label {
   font-size: 14px;
   font-weight: 600;
   line-height: 16px;
-  color: #000;
-  margin: 0;
+  padding-bottom: 14px;
 }
 
-.dark-theme .date-label {
-  color: #fff;
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 0 7px;
 }
 
-.date-value {
+.calendar-title {
+  color: #94a6be;
+  font-size: 14px;
+  line-height: 25px;
+  font-weight: 600;
+}
+
+.calendar-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Направление стрелок */
+.nav-button.prev svg {
+  transform: rotate(-90deg);
+}
+
+.nav-button.next svg {
+  transform: rotate(-90deg);
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin: 7px 0;
+  padding: 0 7px;
+}
+
+.weekday {
+  color: #94a6be;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: -0.2px;
+}
+
+.calendar-days {
+  width: 182px;
+  height: 126px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.day {
+  width: 22px;
+  height: 22px;
+  margin: 2px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #333;
-  font-size: 14px;
+  justify-content: center;
+  font-size: 10px;
+  color: #94a6be;
+  border-radius: 50%;
+  cursor: default;
 }
 
-.dark-theme .date-value {
-  color: #e0e0e0;
+.day.other-month {
+  opacity: 0;
+}
+
+.day.selected {
+  background-color: #94a6be;
+  color: white;
+}
+
+.day.today {
+  font-weight: 700;
+}
+
+.selected-date-display {
+  margin-top: 14px;
+  padding: 0 7px;
+  font-size: 10px;
+  color: #94a6be;
+}
+
+.selected-date-display .date {
+  color: #000;
+}
+
+.dark-theme .selected-date-display .date {
+  color: #fff;
 }
 
 /* Блок кнопок */
@@ -339,7 +579,9 @@ export default {
   gap: 8px;
 }
 
-.edit-btn, .delete-btn, .close-btn {
+.edit-btn,
+.delete-btn,
+.close-btn {
   height: 30px;
   display: flex;
   justify-content: center;
@@ -352,7 +594,8 @@ export default {
   transition: all 0.3s;
 }
 
-.edit-btn, .delete-btn {
+.edit-btn,
+.delete-btn {
   border: 0.7px solid #565eef;
   background: transparent;
   color: #565eef;
@@ -385,7 +628,8 @@ export default {
 }
 
 /* Ховер-эффекты */
-.edit-btn:hover, .delete-btn:hover {
+.edit-btn:hover,
+.delete-btn:hover {
   background: #565eef;
   color: white;
 }
