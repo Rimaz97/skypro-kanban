@@ -516,7 +516,6 @@ export default {
 
 .calendar-days {
   width: 182px;
-  height: 126px;
   display: flex;
   flex-wrap: wrap;
 }

@@ -6,8 +6,12 @@
           <h2>Выйти из аккаунта?</h2>
         </div>
         <div class="pop-exit__form-group">
-          <button class="pop-exit__exit-yes _hover01" @click="confirmExit">Да, выйти</button>
-          <button class="pop-exit__exit-no _hover03" @click="cancelExit">Нет, остаться</button>
+          <BaseButton type="primary" class="confirm-button" @click="confirmExit">
+            Да, выйти
+          </BaseButton>
+          <BaseButton type="tertiary" class="cancel-button" @click="cancelExit">
+            Нет, остаться
+          </BaseButton>
         </div>
       </div>
     </div>
@@ -15,11 +19,19 @@
 </template>
 
 <script>
+import { useRouter } from 'vue-router'
+import BaseButton from '@/components/kanban/BaseButton.vue'
+
 export default {
   name: 'ExitModal',
+  components: { BaseButton },
   emits: ['confirm-exit', 'cancel-exit'],
   setup(props, { emit }) {
+    const router = useRouter()
+
     const confirmExit = () => {
+      localStorage.removeItem('userInfo')
+      router.push('/sign-in')
       emit('confirm-exit')
     }
 
@@ -32,6 +44,7 @@ export default {
       cancelExit,
     }
   },
+
 }
 </script>
 
@@ -78,11 +91,11 @@ export default {
 
 .pop-exit__form-group {
   display: flex;
-  gap: 15px;
+  gap: 10px;
 }
 
-.pop-exit__exit-yes,
-.pop-exit__exit-no {
+.confirm-button,
+.cancel-button {
   flex: 1;
   height: 45px;
   border-radius: 6px;

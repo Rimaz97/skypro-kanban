@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <BaseHeader @open-exit="showExitModal = true" @open-new-card="showNewCardModal = true" />
+    <BaseHeader @open-exit="handleOpenExit" @open-new-card="showNewCardModal = true" />
 
     <main class="main">
       <TaskDesk @open-task="openTaskModal" />
@@ -49,8 +49,8 @@ import ExitModal from '@/components/kanban/ExitModal.vue'
 import NewCardModal from '@/components/kanban/NewCardModal.vue'
 import TaskModal from '@/components/kanban/TaskModal.vue'
 import EditTaskModal from '@/components/kanban/EditTaskModal.vue'
-import { ref, computed } from 'vue'
-
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 export default {
   name: 'HomeView',
   components: {
@@ -67,6 +67,7 @@ export default {
     const showTaskModal = ref(false)
     const showEditTaskModal = ref(false)
     const selectedTask = ref(null)
+    const router = useRouter();
 
     const showOverlay = computed(() => {
       return (
@@ -105,8 +106,10 @@ export default {
     }
 
     const handleExit = () => {
-      console.log('Пользователь вышел из системы')
-      showExitModal.value = false
+      console.log('Пользователь вышел из системы');
+      localStorage.removeItem('userInfo');
+      router.push('/sign-in');
+      showExitModal.value = false;
     }
 
     const closeAllModals = () => {
@@ -116,8 +119,14 @@ export default {
       showEditTaskModal.value = false
     }
 
+    const handleOpenExit = () => {
+    console.log('open-exit event received!');
+    showExitModal.value = true;
+    };
+
     return {
       showExitModal,
+      handleOpenExit,
       showNewCardModal,
       showTaskModal,
       showEditTaskModal,

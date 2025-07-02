@@ -22,12 +22,12 @@
             <button class="header__btn-main-new _hover01" @click="openNewCard">
               Создать новую задачу
             </button>
-            <div class="user-container" @click.prevent="toggleUserPopup">
+            <div class="user-container" @click.prevent="toggleUserPopup" ref="userButtonRef">
               <span class="header__user _hover02"> Ivan Ivanov </span>
             </div>
             <div
               class="header__pop-user-set pop-user-set"
-              :style="{ display: showUserPopup ? 'block' : 'none' }"
+              :style="{ display: showUserPopup ? 'block' : 'none' }" ref="userPopupRef"
             >
               <p class="pop-user-set__name">Ivan Ivanov</p>
               <p class="pop-user-set__mail">ivan.ivanov@gmail.com</p>
@@ -35,9 +35,7 @@
                 <p>Темная тема</p>
                 <input type="checkbox" class="checkbox" name="checkbox" />
               </div>
-              <button type="button" class="_hover03" @click="openExit">
-                <a href="#popExit">Выйти</a>
-              </button>
+              <BaseButton type="tertiary" class="logout-button" @click="logout"> Выйти </BaseButton>
             </div>
           </nav>
         </div>
@@ -47,20 +45,42 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import BaseButton from '@/components/kanban/BaseButton.vue';
 
 export default {
   name: 'BaseHeader',
+  components: { BaseButton },
   emits: ['open-exit', 'open-new-card'],
   setup(props, { emit }) {
     const showUserPopup = ref(false);
+    const userPopupRef = ref(null);
+    const userButtonRef = ref(null);
 
     const toggleUserPopup = () => {
       showUserPopup.value = !showUserPopup.value;
     };
 
-    const openExit = () => {
-      showUserPopup.value = false;
+    const handleClickOutside = (event) => {
+      if (showUserPopup.value &&
+          userPopupRef.value &&
+          !userPopupRef.value.contains(event.target) &&
+          userButtonRef.value &&
+          !userButtonRef.value.contains(event.target)) {
+        showUserPopup.value = false;
+      }
+    };
+
+    onMounted(() => {
+      document.addEventListener('click', handleClickOutside);
+    });
+
+    onBeforeUnmount(() => {
+      document.removeEventListener('click', handleClickOutside);
+    });
+
+    const logout = (e) => {
+      e.preventDefault();
       emit('open-exit');
     };
 
@@ -71,8 +91,10 @@ export default {
     return {
       showUserPopup,
       toggleUserPopup,
-      openExit,
-      openNewCard
+      logout,
+      openNewCard,
+      userPopupRef,
+      userButtonRef
     };
   }
 };
