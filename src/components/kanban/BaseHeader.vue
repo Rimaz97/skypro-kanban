@@ -6,26 +6,24 @@
           <!-- Логотип -->
           <div class="header__logo _show _light">
             <a href="" target="_self">
-              <img src="@/assets/images/logo.png" alt="Skypro Logo">
+              <img src="@/assets/images/logo.png" alt="Skypro Logo" />
             </a>
           </div>
           <div class="header__logo _dark">
             <a href="" target="_self">
-              <img src="@/assets/images/logo_dark.png" alt="Skypro Logo">
+              <img src="@/assets/images/logo_dark.png" alt="Skypro Logo" />
             </a>
           </div>
         </div>
 
-        <!-- Навигация (справа) -->
+        <!-- Навигация -->
         <div class="header__right">
           <nav class="header__nav">
-            <button class="header__btn-main-new _hover01" id="btnMainNew">
-              <a href="#popNewCard">Создать новую задачу</a>
+            <button class="header__btn-main-new _hover01" @click="openNewCard">
+              Создать новую задачу
             </button>
             <div class="user-container" @click.prevent="toggleUserPopup">
-              <span class="header__user _hover02">
-                Ivan Ivanov
-              </span>
+              <span class="header__user _hover02"> Ivan Ivanov </span>
             </div>
             <div
               class="header__pop-user-set pop-user-set"
@@ -35,9 +33,9 @@
               <p class="pop-user-set__mail">ivan.ivanov@gmail.com</p>
               <div class="pop-user-set__theme">
                 <p>Темная тема</p>
-                <input type="checkbox" class="checkbox" name="checkbox">
+                <input type="checkbox" class="checkbox" name="checkbox" />
               </div>
-              <button type="button" class="_hover03">
+              <button type="button" class="_hover03" @click="openExit">
                 <a href="#popExit">Выйти</a>
               </button>
             </div>
@@ -53,16 +51,28 @@ import { ref } from 'vue';
 
 export default {
   name: 'BaseHeader',
-  setup() {
+  emits: ['open-exit', 'open-new-card'],
+  setup(props, { emit }) {
     const showUserPopup = ref(false);
 
     const toggleUserPopup = () => {
       showUserPopup.value = !showUserPopup.value;
     };
 
+    const openExit = () => {
+      showUserPopup.value = false;
+      emit('open-exit');
+    };
+
+    const openNewCard = () => {
+      emit('open-new-card');
+    };
+
     return {
       showUserPopup,
-      toggleUserPopup
+      toggleUserPopup,
+      openExit,
+      openNewCard
     };
   }
 };
@@ -108,16 +118,16 @@ export default {
   display: inline-block;
   padding-right: 15px;
   white-space: nowrap;
-  color: #565EEF;
+  color: #565eef;
 }
 
 .dark-theme .header__user {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 /* Стрелка */
 .header__user::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 70%;
   right: 0;
@@ -138,7 +148,7 @@ export default {
 .header__btn-main-new {
   white-space: nowrap;
   padding: 8px 15px;
-  background: #565EEF;
+  background: #565eef;
   color: white;
   border: none;
   border-radius: 4px;
@@ -171,7 +181,7 @@ export default {
 }
 
 .dark-theme .header__pop-user-set {
-  background: #20202C;
+  background: #20202c;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
@@ -182,11 +192,11 @@ export default {
 }
 
 .dark-theme .pop-user-set__name {
-  color: #FFF;
+  color: #fff;
 }
 
 .pop-user-set__mail {
-  color: #94A6BE;
+  color: #94a6be;
   margin-bottom: 15px;
   font-size: 14px;
 }
@@ -200,29 +210,29 @@ export default {
 }
 
 .dark-theme .pop-user-set__theme {
-  color: #FFF;
+  color: #fff;
 }
 
 ._hover03 {
   width: 100%;
   padding: 8px;
   text-align: center;
-  border: 1px solid #565EEF;
+  border: 1px solid #565eef;
   border-radius: 4px;
   background: transparent;
-  color: #565EEF;
+  color: #565eef;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .dark-theme ._hover03 {
-  border-color: #FFF;
-  color: #FFF;
+  border-color: #fff;
+  color: #fff;
 }
 
 ._hover03:hover {
-  background: #565EEF;
-  color: #FFF;
+  background: #565eef;
+  color: #fff;
 }
 
 .dark-theme ._hover03:hover {
@@ -260,7 +270,7 @@ export default {
   }
 
   .header__btn-main-new::before {
-    content: "+";
+    content: '+';
     font-size: 18px;
     display: inline-block;
   }
