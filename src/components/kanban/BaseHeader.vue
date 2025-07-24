@@ -36,7 +36,7 @@
                 <input type="checkbox" class="checkbox" name="checkbox" />
               </div>
               <button type="button" class="_hover03" @click="openExit">
-                <a href="#popExit">Выйти</a>
+                <a>Выйти</a>
               </button>
             </div>
           </nav>
