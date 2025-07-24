@@ -1,142 +1,151 @@
 <template>
   <div class="wrapper">
-    <BaseHeader @open-exit="showExitModal = true" @open-new-card="showNewCardModal = true" />
+    <!-- Шапка: кнопки «Создать» и «Выйти» -->
+    <BaseHeader
+      @open-new-card="goToAddTask"
+      @open-exit="goToExit"
+    />
 
+    <!-- Основная доска -->
     <main class="main">
-      <TaskDesk @open-task="openTaskModal" />
+      <!-- TaskDesk эмитит событие 'open-task' с объектом task -->
+      <TaskDesk @open-task="goToViewTask" />
     </main>
 
-    <!-- Оверлей для модалок -->
-    <div v-if="showOverlay" class="modal-overlay" @click.self="closeAllModals"></div>
+    <!-- Оверлей для затемнения, если любая модалка открыта -->
+    <div
+      v-if="showOverlay"
+      class="modal-overlay"
+      @click.self="closeAllModals"
+    ></div>
 
-    <!-- Модальные окна -->
+    <!-- Модалки -->
     <ExitModal
       v-if="showExitModal"
       @confirm-exit="handleExit"
-      @cancel-exit="showExitModal = false"
+      @cancel-exit="closeAllModals"
     />
 
     <NewCardModal
       v-if="showNewCardModal"
       @create-task="createTask"
-      @close="showNewCardModal = false"
+      @close="closeAllModals"
     />
 
     <TaskModal
       v-if="showTaskModal"
       :task="selectedTask"
-      :is-visible="showTaskModal"
+      :is-visible="true"
       @delete-task="deleteTask"
-      @close="showTaskModal = false"
-      @open-edit="openEditModal"
+      @close="closeAllModals"
+      @open-edit="goToEditTask"
     />
 
     <EditTaskModal
       v-if="showEditTaskModal"
       :task="selectedTask"
-      :is-visible="showEditTaskModal"
+      :is-visible="true"
       @save="updateTask"
       @delete-task="deleteTask"
-      @close="showEditTaskModal = false"
+      @close="closeAllModals"
     />
   </div>
 </template>
 
-<script>
-import BaseHeader from '@/components/kanban/BaseHeader.vue'
-import TaskDesk from '@/components/kanban/TaskDesk.vue'
-import ExitModal from '@/components/kanban/ExitModal.vue'
-import NewCardModal from '@/components/kanban/NewCardModal.vue'
-import TaskModal from '@/components/kanban/TaskModal.vue'
-import EditTaskModal from '@/components/kanban/EditTaskModal.vue'
-import { ref, computed } from 'vue'
+<script setup>
+import { ref, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-export default {
-  name: 'HomeView',
-  components: {
-    BaseHeader,
-    TaskDesk,
-    ExitModal,
-    NewCardModal,
-    TaskModal,
-    EditTaskModal,
-  },
-  setup() {
-    const showExitModal = ref(false)
-    const showNewCardModal = ref(false)
-    const showTaskModal = ref(false)
-    const showEditTaskModal = ref(false)
-    const selectedTask = ref(null)
+import BaseHeader     from '@/components/kanban/BaseHeader.vue'
+import TaskDesk       from '@/components/kanban/TaskDesk.vue'
+import ExitModal      from '@/components/kanban/ExitModal.vue'
+import NewCardModal   from '@/components/kanban/NewCardModal.vue'
+import TaskModal      from '@/components/kanban/TaskModal.vue'
+import EditTaskModal  from '@/components/kanban/EditTaskModal.vue'
 
-    const showOverlay = computed(() => {
-      return (
-        showExitModal.value ||
-        showNewCardModal.value ||
-        showTaskModal.value ||
-        showEditTaskModal.value
-      )
-    })
+// Данные задач для прямого доступа по ID
+import { tasksData } from '@/data/tasks'
 
-    const openTaskModal = (task) => {
-      selectedTask.value = task
-      showTaskModal.value = true
-    }
+const route  = useRoute()
+const router = useRouter()
 
-    const openEditModal = (task) => {
-      selectedTask.value = task
-      showTaskModal.value = false
-      showEditTaskModal.value = true
-    }
+// Текущая выбранная задача
+const selectedTask = ref(null)
 
-    const createTask = (task) => {
-      console.log('Создана новая задача:', task)
-      showNewCardModal.value = false
-    }
+// Флаги модалок — управляются маршрутами
+const showExitModal     = computed(() => route.path === '/exit')
+const showNewCardModal  = computed(() => route.path === '/add-task')
+const showTaskModal     = computed(() => route.path.startsWith('/card/'))
+const showEditTaskModal = computed(() => route.path.startsWith('/edit-task/'))
 
-    const updateTask = (updatedTask) => {
-      console.log('Задача обновлена:', updatedTask)
-      showEditTaskModal.value = false
-    }
+// Оверлей показываем, если любая модалка открыта
+const showOverlay = computed(() =>
+  showExitModal.value ||
+  showNewCardModal.value ||
+  showTaskModal.value ||
+  showEditTaskModal.value
+)
 
-    const deleteTask = (taskId) => {
-      console.log('Удалена задача:', taskId)
-      showTaskModal.value = false
-      showEditTaskModal.value = false
-    }
-
-    const handleExit = () => {
-      console.log('Пользователь вышел из системы')
-      showExitModal.value = false
-    }
-
-    const closeAllModals = () => {
-      showExitModal.value = false
-      showNewCardModal.value = false
-      showTaskModal.value = false
-      showEditTaskModal.value = false
-    }
-
-    return {
-      showExitModal,
-      showNewCardModal,
-      showTaskModal,
-      showEditTaskModal,
-      showOverlay,
-      selectedTask,
-      openTaskModal,
-      openEditModal,
-      createTask,
-      updateTask,
-      deleteTask,
-      handleExit,
-      closeAllModals,
+// Когда URL меняется и там есть params.id — ищем задачу
+watch(
+  () => route.params.id,
+  newId => {
+    if (newId != null) {
+      // приводим к строке на всякий случай
+      selectedTask.value = tasksData.find(
+        t => String(t.id) === String(newId)
+      ) || null
     }
   },
+  { immediate: true }
+)
+
+// Навигация «открыть модалку»
+function goToAddTask() {
+  router.push('/add-task')
+}
+function goToExit() {
+  router.push('/exit')
+}
+function goToViewTask(task) {
+  selectedTask.value = task
+  router.push(`/card/${task.id}`)
+}
+function goToEditTask(task) {
+  selectedTask.value = task
+  router.push(`/edit-task/${task.id}`)
+}
+
+// Закрыть все модалки => вернуться на /
+function closeAllModals() {
+  router.push('/')
+}
+
+// Обработчики действий внутри модалок
+function createTask(task) {
+  console.log('Создана новая задача:', task)
+  closeAllModals()
+}
+
+function updateTask(updated) {
+  console.log('Задача обновлена:', updated)
+  closeAllModals()
+}
+
+function deleteTask(id) {
+  console.log('Удалена задача:', id)
+  closeAllModals()
+}
+
+function handleExit() {
+  console.log('Пользователь вышел из системы')
+  localStorage.removeItem('userInfo')
+  // При выходе отправляем на страницу логина
+  router.push('/login')
 }
 </script>
 
 <style scoped>
-/* Добавляем для корректного растягивания */
 .wrapper {
   display: flex;
   flex-direction: column;
@@ -147,14 +156,14 @@ export default {
   flex: 1;
 }
 
-/* Оверлей для затемнения фона */
+/* затемнение фона */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0,0,0,0.5);
   z-index: 100;
 }
 </style>

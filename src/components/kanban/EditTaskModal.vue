@@ -626,10 +626,6 @@ export default {
   width: 93px;
 }
 
-.delete-btn {
-  width: 131px;
-}
-
 .close-btn {
   width: 86px;
 }

@@ -516,7 +516,6 @@ export default {
 
 .calendar-days {
   width: 182px;
-  height: 126px;
   display: flex;
   flex-wrap: wrap;
 }
@@ -610,10 +609,6 @@ export default {
 
 .edit-btn {
   max-width: 176px;
-}
-
-.delete-btn {
-  width: 131px;
 }
 
 .close-btn {
