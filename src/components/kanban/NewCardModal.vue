@@ -244,7 +244,6 @@ export default {
     // Создание задачи
     const createTask = () => {
       const newTask = {
-        id: Date.now(),
         topic: selectedCategory.value,
         title: taskTitle.value,
         description: taskDescription.value,

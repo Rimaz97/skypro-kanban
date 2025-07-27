@@ -3,15 +3,37 @@
     <div class="container">
       <div class="main__content">
         <!-- Лоадер -->
-        <div v-if="isLoading" class="loading-state">
+          <div v-if="isLoadingProp" class="loading-state">
           <div class="loader-container">
             <div class="loader"></div>
             <p>Загрузка задач...</p>
           </div>
         </div>
 
+        <!-- Отображение ошибки -->
+        <div v-else-if="error" class="error-state">
+          <div class="error-container">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#ff5252"
+              stroke-width="1.5"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <h3>Ошибка загрузки</h3>
+            <p>{{ error }}</p>
+            <button @click="$emit('reload')">Повторить попытку</button>
+          </div>
+        </div>
+
         <!-- Пустое состояние -->
-        <div v-else-if="totalTasks === 0" class="empty-state">
+        <div v-else-if="tasks.length === 0" class="empty-state">
           <div class="empty-container">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -48,17 +70,22 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue'
+import { ref, computed } from 'vue'
 import TaskColumn from './TaskColumn.vue'
-import { tasksData } from '@/data/tasks'
 
 export default {
   name: 'TaskDesk',
   components: { TaskColumn },
+  props: {
+    tasks: {
+      type: Array,
+      default: () => []
+    },
+    isLoadingProp: Boolean,
+    error: String
+  },
   setup(props, { emit }) {
-    const isLoading = ref(true)
-    const tasks = ref([])
-
+    const isLoading = ref(false)
     const columns = ref([
       { title: 'Без статуса' },
       { title: 'Нужно сделать' },
@@ -67,28 +94,20 @@ export default {
       { title: 'Готово' },
     ])
 
-    const totalTasks = computed(() => tasks.value.length)
+    const totalTasks = computed(() => props.tasks.length)
     const isEmpty = computed(() => totalTasks.value === 0)
 
     const filteredTasks = (status) => {
-      return tasks.value.filter((task) => task.status === status)
+      return props.tasks.filter((task) => task.status === status)
     }
 
     const handleAddTask = () => {
-      console.log('Открытие модалки добавления задачи')
+      emit('add-task')
     }
 
     const openTask = (task) => {
-      console.log('TaskDesk emitting open-task for:', task)
       emit('open-task', task)
     }
-
-    onMounted(() => {
-      setTimeout(() => {
-        tasks.value = tasksData
-        isLoading.value = false
-      }, 2000)
-    })
 
     return {
       isLoading,
@@ -113,7 +132,8 @@ export default {
 
 /* Стили для состояний */
 .loading-state,
-.empty-state {
+.empty-state,
+.error-state {
   flex: 1;
   display: flex;
   align-items: center;
@@ -121,7 +141,8 @@ export default {
 }
 
 .loader-container,
-.empty-container {
+.empty-container,
+.error-container {
   text-align: center;
   max-width: 400px;
   padding: 40px;
@@ -148,18 +169,31 @@ export default {
 }
 
 /* Стили пустого состояния */
-.empty-state h3 {
+.empty-state h3,
+.error-state h3 {
   font-size: 24px;
   margin: 20px 0 10px;
   color: #333;
 }
 
-.empty-state p {
+.dark-theme .empty-state h3,
+.dark-theme .error-state h3 {
+  color: #e0e0e0;
+}
+
+.empty-state p,
+.error-state p {
   color: #94a6be;
   margin-bottom: 20px;
 }
 
-.empty-state button {
+.dark-theme .empty-state p,
+.dark-theme .error-state p {
+  color: #a0aec0;
+}
+
+.empty-state button,
+.error-state button {
   padding: 12px 30px;
   background: #565eef;
   color: white;
@@ -171,23 +205,24 @@ export default {
   box-shadow: 0 4px 12px rgba(86, 94, 239, 0.25);
 }
 
-.empty-state button:hover {
+.empty-state button:hover,
+.error-state button:hover {
   background: #4549ca;
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(86, 94, 239, 0.35);
 }
 
-/* Адаптация для темной темы */
-.dark-theme .empty-state h3 {
-  color: #e0e0e0;
+/* Стили состояния ошибки */
+.error-state {
+  color: #ff5252;
 }
-
-.dark-theme .empty-state p {
-  color: #a0aec0;
+.error-state svg {
+  stroke: #ff5252;
 }
-
-.dark-theme .loader {
-  border-color: rgba(255, 255, 255, 0.2);
-  border-top-color: #7986ff;
+.error-state button {
+  background: #ff5252;
+}
+.error-state button:hover {
+  background: #e04545;
 }
 </style>

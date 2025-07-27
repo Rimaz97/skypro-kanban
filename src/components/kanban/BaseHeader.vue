@@ -3,40 +3,61 @@
     <div class="container">
       <div class="header__block">
         <div class="header__left">
-          <!-- Логотип -->
           <div class="header__logo _show _light">
-            <a href="" target="_self">
-              <img src="@/assets/images/logo.png" alt="Skypro Logo" />
-            </a>
+            <router-link to="/">
+              <img
+                src="@/assets/images/logo.png"
+                alt="SkyWords Logo"
+                aria-label="Перейти на главную страницу"
+              />
+            </router-link>
           </div>
           <div class="header__logo _dark">
-            <a href="" target="_self">
-              <img src="@/assets/images/logo_dark.png" alt="Skypro Logo" />
-            </a>
+            <router-link to="/">
+              <img
+                src="@/assets/images/logo_dark.png"
+                alt="SkyWords Logo (dark mode)"
+                aria-label="Перейти на главную страницу"
+              />
+            </router-link>
           </div>
         </div>
 
-        <!-- Навигация -->
         <div class="header__right">
           <nav class="header__nav">
-            <button class="header__btn-main-new _hover01" @click="openNewCard">
+            <button
+              class="header__btn-main-new _hover01"
+              @click="openNewCard"
+              aria-label="Создать новую задачу"
+            >
               Создать новую задачу
             </button>
             <div class="user-container" @click.prevent="toggleUserPopup">
-              <span class="header__user _hover02"> Ivan Ivanov </span>
+              <span class="header__user _hover02"> {{ userName }} </span>
             </div>
             <div
               class="header__pop-user-set pop-user-set"
-              :style="{ display: showUserPopup ? 'block' : 'none' }"
+              v-show="showUserPopup"
+              @click.stop
             >
-              <p class="pop-user-set__name">Ivan Ivanov</p>
-              <p class="pop-user-set__mail">ivan.ivanov@gmail.com</p>
+              <p class="pop-user-set__name">{{ userName }}</p>
+              <p class="pop-user-set__mail">{{ userEmail }}</p>
               <div class="pop-user-set__theme">
                 <p>Темная тема</p>
-                <input type="checkbox" class="checkbox" name="checkbox" />
+                <input
+                  type="checkbox"
+                  class="checkbox"
+                  name="checkbox"
+                  v-model="darkThemeEnabled"
+                />
               </div>
-              <button type="button" class="_hover03" @click="openExit">
-                <a>Выйти</a>
+              <button
+                type="button"
+                class="_hover03"
+                @click="handleExit"
+                aria-label="Выйти из системы"
+              >
+                Выйти
               </button>
             </div>
           </nav>
@@ -47,31 +68,68 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'BaseHeader',
-  emits: ['open-exit', 'open-new-card'],
-  setup(props, { emit }) {
+  setup() {
+    const router = useRouter();
     const showUserPopup = ref(false);
+    const darkThemeEnabled = ref(false);
+    const userName = ref('');
+    const userEmail = ref('');
+
+    onMounted(() => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          const { name, login } = JSON.parse(userData);
+          userName.value = name || 'Пользователь';
+          userEmail.value = login || 'email@example.com';
+        } catch (e) {
+          console.error('Ошибка загрузки данных пользователя:', e);
+        }
+      }
+
+      darkThemeEnabled.value = localStorage.getItem('darkTheme') === 'true';
+      updateTheme();
+    });
+
+    const updateTheme = () => {
+      if (darkThemeEnabled.value) {
+        document.body.classList.add('dark-theme');
+        localStorage.setItem('darkTheme', 'true');
+      } else {
+        document.body.classList.remove('dark-theme');
+        localStorage.removeItem('darkTheme');
+      }
+    };
 
     const toggleUserPopup = () => {
       showUserPopup.value = !showUserPopup.value;
     };
 
-    const openExit = () => {
+    const handleExit = () => {
+      router.push('/exit');
       showUserPopup.value = false;
-      emit('open-exit');
     };
 
     const openNewCard = () => {
-      emit('open-new-card');
+      router.push('/add-task');
     };
+
+    watch(darkThemeEnabled, () => {
+      updateTheme();
+    });
 
     return {
       showUserPopup,
+      darkThemeEnabled,
+      userName,
+      userEmail,
       toggleUserPopup,
-      openExit,
+      handleExit,
       openNewCard
     };
   }
@@ -79,7 +137,6 @@ export default {
 </script>
 
 <style scoped>
-/* Основные стили для шапки */
 .header__block {
   display: flex;
   justify-content: space-between;
@@ -104,7 +161,6 @@ export default {
   position: relative;
 }
 
-/* Контейнер для имени пользователя */
 .user-container {
   position: relative;
   display: flex;
@@ -112,7 +168,6 @@ export default {
   cursor: pointer;
 }
 
-/* Стили для текста имени пользователя */
 .header__user {
   position: relative;
   display: inline-block;
@@ -122,10 +177,9 @@ export default {
 }
 
 .dark-theme .header__user {
-  color: #ffffff;
+  color: #ffff;
 }
 
-/* Стрелка */
 .header__user::after {
   content: '';
   position: absolute;
@@ -139,12 +193,10 @@ export default {
   transition: transform 0.3s ease;
 }
 
-/* Анимация стрелки при наведении */
 .user-container:hover .header__user::after {
   transform: translateY(-50%) rotate(-225deg);
 }
 
-/* Кнопка создания задачи */
 .header__btn-main-new {
   white-space: nowrap;
   padding: 8px 15px;
@@ -157,16 +209,10 @@ export default {
   transition: background 0.3s;
 }
 
-.header__btn-main-new a {
-  color: white;
-  text-decoration: none;
-}
-
 .header__btn-main-new:hover {
   background: #4549ca;
 }
 
-/* Стили для попапа пользователя */
 .header__pop-user-set {
   position: absolute;
   top: 100%;
@@ -239,7 +285,6 @@ export default {
   background: #7986ff;
 }
 
-/* Адаптация для мобильных устройств */
 @media (max-width: 768px) {
   .header__nav {
     gap: 10px;

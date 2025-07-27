@@ -1,36 +1,22 @@
 <template>
   <div class="wrapper">
-    <!-- Шапка: кнопки «Создать» и «Выйти» -->
-    <BaseHeader
-      @open-new-card="goToAddTask"
-      @open-exit="goToExit"
-    />
+    <BaseHeader @open-new-card="goToAddTask" @open-exit="goToExit" />
 
-    <!-- Основная доска -->
     <main class="main">
-      <!-- TaskDesk эмитит событие 'open-task' с объектом task -->
-      <TaskDesk @open-task="goToViewTask" />
+      <TaskDesk
+        :tasks="tasks"
+        :isLoadingProp="loading"
+        :error="error"
+        @open-task="goToViewTask"
+        @add-task="goToAddTask"
+      />
     </main>
 
-    <!-- Оверлей для затемнения, если любая модалка открыта -->
-    <div
-      v-if="showOverlay"
-      class="modal-overlay"
-      @click.self="closeAllModals"
-    ></div>
+    <div v-if="showOverlay" class="modal-overlay" @click.self="closeAllModals"></div>
 
-    <!-- Модалки -->
-    <ExitModal
-      v-if="showExitModal"
-      @confirm-exit="handleExit"
-      @cancel-exit="closeAllModals"
-    />
+    <ExitModal v-if="showExitModal" @confirm-exit="handleExit" @cancel-exit="closeAllModals" />
 
-    <NewCardModal
-      v-if="showNewCardModal"
-      @create-task="createTask"
-      @close="closeAllModals"
-    />
+    <NewCardModal v-if="showNewCardModal" @create-task="createTask" @close="closeAllModals" />
 
     <TaskModal
       v-if="showTaskModal"
@@ -53,54 +39,101 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import BaseHeader from '@/components/kanban/BaseHeader.vue'
+import TaskDesk from '@/components/kanban/TaskDesk.vue'
+import ExitModal from '@/components/kanban/ExitModal.vue'
+import NewCardModal from '@/components/kanban/NewCardModal.vue'
+import TaskModal from '@/components/kanban/TaskModal.vue'
+import EditTaskModal from '@/components/kanban/EditTaskModal.vue'
+import { fetchWords, postWord, editWord, deleteWord } from '@/services/api'
 
-import BaseHeader     from '@/components/kanban/BaseHeader.vue'
-import TaskDesk       from '@/components/kanban/TaskDesk.vue'
-import ExitModal      from '@/components/kanban/ExitModal.vue'
-import NewCardModal   from '@/components/kanban/NewCardModal.vue'
-import TaskModal      from '@/components/kanban/TaskModal.vue'
-import EditTaskModal  from '@/components/kanban/EditTaskModal.vue'
-
-// Данные задач для прямого доступа по ID
-import { tasksData } from '@/data/tasks'
-
-const route  = useRoute()
+const route = useRoute()
 const router = useRouter()
-
-// Текущая выбранная задача
+const tasks = ref([])
 const selectedTask = ref(null)
+const loading = ref(false)
+const error = ref('')
 
-// Флаги модалок — управляются маршрутами
-const showExitModal     = computed(() => route.path === '/exit')
-const showNewCardModal  = computed(() => route.path === '/add-task')
-const showTaskModal     = computed(() => route.path.startsWith('/card/'))
+const isAuthenticated = computed(() => {
+  return !!localStorage.getItem('token')
+})
+
+const loadTasks = async () => {
+  if (!isAuthenticated.value) return
+
+  try {
+    loading.value = true
+    error.value = ''
+    const data = await fetchWords()
+    tasks.value = Array.isArray(data) ? data : []
+  } catch (err) {
+    error.value = err.message
+    tasks.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  if (!isAuthenticated.value) {
+    router.push('/login')
+  } else {
+    loadTasks()
+  }
+})
+
+const createTask = async (task) => {
+  try {
+    await postWord(task)
+    await loadTasks()
+    closeAllModals()
+  } catch (err) {
+    error.value = err.message
+  }
+}
+
+const updateTask = async (updated) => {
+  try {
+    await editWord(updated.id, updated)
+    await loadTasks()
+    closeAllModals()
+  } catch (err) {
+    error.value = err.message
+  }
+}
+
+const deleteTask = async (id) => {
+  try {
+    await deleteWord(id)
+    await loadTasks()
+    closeAllModals()
+  } catch (err) {
+    error.value = err.message
+  }
+}
+
+const showExitModal = computed(() => route.path === '/exit')
+const showNewCardModal = computed(() => route.path === '/add-task')
+const showTaskModal = computed(() => route.path.startsWith('/card/'))
 const showEditTaskModal = computed(() => route.path.startsWith('/edit-task/'))
 
-// Оверлей показываем, если любая модалка открыта
-const showOverlay = computed(() =>
-  showExitModal.value ||
-  showNewCardModal.value ||
-  showTaskModal.value ||
-  showEditTaskModal.value
+const showOverlay = computed(
+  () =>
+    showExitModal.value || showNewCardModal.value || showTaskModal.value || showEditTaskModal.value,
 )
 
-// Когда URL меняется и там есть params.id — ищем задачу
 watch(
   () => route.params.id,
-  newId => {
+  (newId) => {
     if (newId != null) {
-      // приводим к строке на всякий случай
-      selectedTask.value = tasksData.find(
-        t => String(t.id) === String(newId)
-      ) || null
+      selectedTask.value = tasks.value.find((t) => String(t.id) === String(newId)) || null
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 
-// Навигация «открыть модалку»
 function goToAddTask() {
   router.push('/add-task')
 }
@@ -116,31 +149,13 @@ function goToEditTask(task) {
   router.push(`/edit-task/${task.id}`)
 }
 
-// Закрыть все модалки => вернуться на /
 function closeAllModals() {
   router.push('/')
 }
 
-// Обработчики действий внутри модалок
-function createTask(task) {
-  console.log('Создана новая задача:', task)
-  closeAllModals()
-}
-
-function updateTask(updated) {
-  console.log('Задача обновлена:', updated)
-  closeAllModals()
-}
-
-function deleteTask(id) {
-  console.log('Удалена задача:', id)
-  closeAllModals()
-}
-
 function handleExit() {
-  console.log('Пользователь вышел из системы')
-  localStorage.removeItem('userInfo')
-  // При выходе отправляем на страницу логина
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
   router.push('/login')
 }
 </script>
@@ -156,14 +171,13 @@ function handleExit() {
   flex: 1;
 }
 
-/* затемнение фона */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 100;
 }
 </style>
