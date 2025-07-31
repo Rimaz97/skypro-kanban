@@ -5,9 +5,30 @@
         <div class="modal__block">
           <div class="modal__ttl"><h2>Вход</h2></div>
           <form class="modal__form-login" @submit.prevent="handleLogin">
-            <input class="modal__input" type="email" v-model="email" placeholder="Эл. почта"/>
-            <input class="modal__input" type="password" v-model="password" placeholder="Пароль"/>
-            <button class="modal__btn-enter _hover01" type="submit">Войти</button>
+            <BaseInput
+              v-model="form.login"
+              type="email"
+              placeholder="Эл. почта"
+              required
+            />
+
+            <BaseInput
+              v-model="form.password"
+              type="password"
+              placeholder="Пароль"
+              required
+            />
+
+            <p v-if="error" class="error-message">{{ error }}</p>
+
+            <button
+              class="modal__btn-enter _hover01"
+              type="submit"
+              :disabled="loading"
+            >
+              {{ loading ? 'Загрузка...' : 'Войти' }}
+            </button>
+
             <div class="modal__form-group">
               <p>Нужно зарегистрироваться?
                 <router-link to="/register">Регистрируйтесь здесь</router-link>
@@ -23,18 +44,49 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { signIn } from '@/services/auth'
+import BaseInput from '@/components/ui/BaseInput.vue'
 
-const email    = ref('')
-const password = ref('')
-const router   = useRouter()
+const form = ref({
+  login: '',
+  password: ''
+});
 
-function handleLogin() {
-  // здесь обычно запрос к API, но для примера просто сохраняем
-  localStorage.setItem('userInfo', JSON.stringify({ email: email.value }))
-  router.push('/')  // после успешного входа — на главную
+const error = ref('')
+const loading = ref(false)
+const router = useRouter()
+
+async function handleLogin() {
+  error.value = ''
+  loading.value = true
+  try {
+    const { token, user } = await signIn({
+      login: form.value.login,
+      password: form.value.password
+    });
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+
+    router.push('/');
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/signin.scss';
+@use '@/assets/styles/signin.scss';
+
+.error-message {
+  color: #ff5252;
+  margin: 10px 0;
+  text-align: center;
+  font-size: 14px;
+  background: #ffe6e6;
+  padding: 8px;
+  border-radius: 4px;
+}
 </style>
