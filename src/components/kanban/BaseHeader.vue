@@ -67,73 +67,51 @@
   </header>
 </template>
 
-<script>
-import { ref, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+<script setup>
+import { inject, ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+const { user } = inject('auth')
+const router = useRouter()
 
-export default {
-  name: 'BaseHeader',
-  setup() {
-    const router = useRouter();
-    const showUserPopup = ref(false);
-    const darkThemeEnabled = ref(false);
-    const userName = ref('');
-    const userEmail = ref('');
+const showUserPopup = ref(false)
+const darkThemeEnabled = ref(false)
 
-    onMounted(() => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        try {
-          const { name, login } = JSON.parse(userData);
-          userName.value = name || 'Пользователь';
-          userEmail.value = login || 'email@example.com';
-        } catch (e) {
-          console.error('Ошибка загрузки данных пользователя:', e);
-        }
-      }
+// Имя и email пользователя — computed, чтобы всегда были актуальны
+const userName = computed(() => user.value?.user?.name || 'Пользователь')
+const userEmail = computed(() => user.value?.user?.login || 'email@example.com')
 
-      darkThemeEnabled.value = localStorage.getItem('darkTheme') === 'true';
-      updateTheme();
-    });
+onMounted(() => {
+  darkThemeEnabled.value = localStorage.getItem('darkTheme') === 'true'
+  updateTheme()
+})
 
-    const updateTheme = () => {
-      if (darkThemeEnabled.value) {
-        document.body.classList.add('dark-theme');
-        localStorage.setItem('darkTheme', 'true');
-      } else {
-        document.body.classList.remove('dark-theme');
-        localStorage.removeItem('darkTheme');
-      }
-    };
-
-    const toggleUserPopup = () => {
-      showUserPopup.value = !showUserPopup.value;
-    };
-
-    const handleExit = () => {
-      router.push('/exit');
-      showUserPopup.value = false;
-    };
-
-    const openNewCard = () => {
-      router.push('/add-task');
-    };
-
-    watch(darkThemeEnabled, () => {
-      updateTheme();
-    });
-
-    return {
-      showUserPopup,
-      darkThemeEnabled,
-      userName,
-      userEmail,
-      toggleUserPopup,
-      handleExit,
-      openNewCard
-    };
+const updateTheme = () => {
+  if (darkThemeEnabled.value) {
+    document.body.classList.add('dark-theme')
+    localStorage.setItem('darkTheme', 'true')
+  } else {
+    document.body.classList.remove('dark-theme')
+    localStorage.removeItem('darkTheme')
   }
-};
+}
+
+const toggleUserPopup = () => {
+  showUserPopup.value = !showUserPopup.value
+}
+
+const handleExit = () => {
+  router.push('/exit')
+}
+
+const openNewCard = () => {
+  router.push('/add-task')
+}
+
+watch(user, (val) => {
+  console.log('user изменился:', val)
+})
+
+watch(darkThemeEnabled, updateTheme)
 </script>
 
 <style scoped>

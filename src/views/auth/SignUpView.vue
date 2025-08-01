@@ -49,10 +49,13 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { signUp } from '@/services/auth'
-import BaseInput from '@/components/ui/BaseInput.vue' // Импортируем компонент
+import BaseInput from '@/components/ui/BaseInput.vue'
+
+const { setUser } = inject('auth')
 
 const form = ref({
   name: '',
@@ -68,12 +71,16 @@ async function handleSignUp() {
   error.value = ''
   loading.value = true
   try {
-    await signUp({
+    // Получаем данные пользователя и токен с сервера
+    const { token, user } = await signUp({
       name: form.value.name,
       login: form.value.login,
       password: form.value.password
     });
-    router.push('/login');
+
+    setUser({ token, user }) // сохраняем пользователя глобально
+
+    router.push('/login') // обычно сразу на главную, но если нужно — на
   } catch (err) {
     error.value = err.message;
   } finally {

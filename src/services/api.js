@@ -1,15 +1,10 @@
 const API_URL = 'https://wedev-api.sky.pro/api/kanban'
 
-const getAuthToken = () => {
-  const token = localStorage.getItem('token')
-  return token ? `Bearer ${token}` : ''
-}
-
-export async function fetchWords() {
+export async function fetchWords(token) {
    try {
       const response = await fetch(API_URL, {
          headers: {
-            Authorization: getAuthToken(),
+            Authorization: `Bearer ${token}`,
          },
       })
 
@@ -25,7 +20,7 @@ export async function fetchWords() {
    }
 }
 
-export async function postWord(task) {
+export async function postWord(task, token) {
   try {
     const formData = new FormData();
     formData.append('title', task.title || 'Без названия');
@@ -37,7 +32,7 @@ export async function postWord(task) {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
-        Authorization: getAuthToken(),
+        Authorization: `Bearer ${token}`,
       },
       body: formData
     });
@@ -53,7 +48,7 @@ export async function postWord(task) {
   }
 }
 
-export async function editWord(id, updatedTask) {
+export async function editWord(id, updatedTask, token) {
    try {
       const formData = new FormData();
       for (const key in updatedTask) {
@@ -63,7 +58,7 @@ export async function editWord(id, updatedTask) {
       const response = await fetch(`${API_URL}/${id}`, {
          method: 'PUT',
          headers: {
-            Authorization: getAuthToken(),
+            Authorization: `Bearer ${token}`,
          },
          body: formData
       })
@@ -79,12 +74,12 @@ export async function editWord(id, updatedTask) {
    }
 }
 
-export async function deleteWord(id) {
+export async function deleteWord(id, token) {
    try {
       const response = await fetch(`${API_URL}/${id}`, {
          method: 'DELETE',
          headers: {
-            Authorization: getAuthToken(),
+            Authorization: `Bearer ${token}`,
          },
       })
 

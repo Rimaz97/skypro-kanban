@@ -5,32 +5,19 @@
         <div class="modal__block">
           <div class="modal__ttl"><h2>Вход</h2></div>
           <form class="modal__form-login" @submit.prevent="handleLogin">
-            <BaseInput
-              v-model="form.login"
-              type="email"
-              placeholder="Эл. почта"
-              required
-            />
+            <BaseInput v-model="form.login" type="email" placeholder="Эл. почта" required />
 
-            <BaseInput
-              v-model="form.password"
-              type="password"
-              placeholder="Пароль"
-              required
-            />
+            <BaseInput v-model="form.password" type="password" placeholder="Пароль" required />
 
             <p v-if="error" class="error-message">{{ error }}</p>
 
-            <button
-              class="modal__btn-enter _hover01"
-              type="submit"
-              :disabled="loading"
-            >
+            <button class="modal__btn-enter _hover01" type="submit" :disabled="loading">
               {{ loading ? 'Загрузка...' : 'Войти' }}
             </button>
 
             <div class="modal__form-group">
-              <p>Нужно зарегистрироваться?
+              <p>
+                Нужно зарегистрироваться?
                 <router-link to="/register">Регистрируйтесь здесь</router-link>
               </p>
             </div>
@@ -42,15 +29,18 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { signIn } from '@/services/auth'
 import BaseInput from '@/components/ui/BaseInput.vue'
 
+const { setUser } = inject('auth')
+
 const form = ref({
   login: '',
-  password: ''
-});
+  password: '',
+})
 
 const error = ref('')
 const loading = ref(false)
@@ -62,17 +52,15 @@ async function handleLogin() {
   try {
     const { token, user } = await signIn({
       login: form.value.login,
-      password: form.value.password
-    });
+      password: form.value.password,
+    })
 
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-
-    router.push('/');
+    setUser({ token, user })
+    router.push('/')
   } catch (err) {
-    error.value = err.message;
+    error.value = err.message
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 </script>
