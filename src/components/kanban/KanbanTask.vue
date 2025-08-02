@@ -1,5 +1,5 @@
 <template>
-  <div class="cards__item">
+  <div class="cards__item" :class="{ 'dark-theme': isDark }">
     <div class="cards__card card" @click="openTaskCard">
       <div class="card__group">
         <div :class="['card__theme', themeClass]">
@@ -44,61 +44,88 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'KanbanTask',
-  props: {
-    task: {
-      type: Object,
-      required: true,
-    },
+<script setup>
+import { inject, computed, defineProps, defineEmits } from 'vue'
+
+const isDark = inject('isDark')
+
+const { task } = defineProps({
+  task: {
+    type: Object,
+    required: true,
   },
-  computed: {
-    formattedDate() {
-      if (!this.task.date) return ''
-      const date = new Date(this.task.date)
-      return date.toLocaleDateString('ru-RU', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      })
-    },
-    themeClass() {
-      const themeMap = {
-        'Web Design': '_orange',
-        Research: '_green',
-        Copywriting: '_purple',
-        QA: '_green',
-        Deployment: '_blue',
-        'Bug Fix': '_red',
-        'UI/UX': '_orange',
-        Backend: '_gray',
-      }
-      return themeMap[this.task.topic] || '_gray'
-    },
-  },
-  methods: {
-    openTaskCard() {
-      this.$emit('open-task', this.task)
-    },
-    openTaskMenu(event) {
-      event.stopPropagation()
-      this.$emit('open-task', this.task)
-    },
-  },
+})
+
+const emit = defineEmits(['open-task'])
+
+const formattedDate = computed(() => {
+  if (!task.date) return ''
+  const date = new Date(task.date)
+  return date.toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+})
+
+const themeClass = computed(() => {
+  const themeMap = {
+    'Web Design': '_orange',
+    Research: '_green',
+    Copywriting: '_purple',
+    QA: '_green',
+    Deployment: '_blue',
+    'Bug Fix': '_red',
+    'UI/UX': '_orange',
+    Backend: '_gray',
+  }
+  return themeMap[task.topic] || '_gray'
+})
+
+function openTaskCard() {
+  emit('open-task', task)
+}
+
+function openTaskMenu(event) {
+  event.stopPropagation()
+  emit('open-task', task)
 }
 </script>
 
 <style scoped>
-/* Стили для компонента */
 .cards__card {
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
+  background: #fff;
 }
 
 .cards__card:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark-theme .cards__card {
+  background: #2d2d3a;
+}
+
+.dark-theme .cards__card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.card__title {
+  color: #000;
+}
+
+.dark-theme .card__title {
+  color: #fff;
+}
+
+.card__date p {
+  color: #94A6BE;
+}
+
+.dark-theme .card__date p {
+  color: #b0b0b0;
 }
 </style>

@@ -1,19 +1,22 @@
 <template>
   <input
     class="input"
+    :class="{ 'dark-theme': isDark }"
     :type="type"
     :name="name"
     :id="id"
     :placeholder="placeholder"
-    v-model="modelValue"
+    :value="modelValue"
     @input="updateValue"
   />
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { inject, defineProps, defineEmits } from 'vue'
 
-const props = defineProps({
+const isDark = inject('isDark')
+
+const { modelValue, type, name, id, placeholder } = defineProps({
   id: {
     type: String,
     required: true
@@ -34,22 +37,13 @@ const props = defineProps({
     type: [String, Number],
     default: ''
   }
-});
+})
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 
-const modelValue = ref(props.modelValue);
-
-// Обновляем родительский компонент при изменении значения
 const updateValue = (event) => {
-  modelValue.value = event.target.value;
-  emit('update:modelValue', modelValue.value);
-};
-
-// Реагируем на изменения извне
-watch(() => props.modelValue, (newVal) => {
-  modelValue.value = newVal;
-});
+  emit('update:modelValue', event.target.value)
+}
 </script>
 
 <style scoped>
@@ -60,11 +54,27 @@ watch(() => props.modelValue, (newVal) => {
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
-  transition: border-color 0.3s;
+  transition: border-color 0.3s, background 0.3s, color 0.3s;
+  background: #fff;
+  color: #000;
 }
 
 .input:focus {
   border-color: #565eef;
   outline: none;
+}
+
+.dark-theme.input {
+  background: #2d2d3a;
+  border-color: #4e5566;
+  color: #fff;
+}
+
+.dark-theme.input:focus {
+  border-color: #7986ff;
+}
+
+.dark-theme.input::placeholder {
+  color: #b0b0b0;
 }
 </style>

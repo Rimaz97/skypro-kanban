@@ -257,9 +257,7 @@ export default {
 
     // Удаление задачи
     const deleteTask = () => {
-      if (confirm('Вы точно хотите удалить эту задачу?')) {
-        emit('delete-task', props.task.id)
-      }
+      emit('delete-task', props.task._id)
     }
 
     // Закрытие модалки

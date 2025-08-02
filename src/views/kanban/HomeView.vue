@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div class="wrapper" :class="{ 'dark-theme': isDark }">
     <main class="main">
       <TaskDesk
         :tasks="tasks"
@@ -26,7 +26,7 @@
     />
 
     <EditTaskModal
-      v-if="showEditTaskModal"
+      v-if="showEditTaskModal && selectedTask"
       :task="selectedTask"
       :is-visible="true"
       @save="updateTask"
@@ -55,6 +55,8 @@ const loading = ref(false)
 const error = ref('')
 
 provide('tasksData', { tasks, loading, error })
+
+const isDark = inject('isDark')
 
 const isAuthenticated = computed(() => !!user.value?.token)
 
@@ -98,7 +100,7 @@ const createTask = async (task) => {
 
 const updateTask = async (updated) => {
   try {
-    await editWord(updated.id, updated, user.value.token)
+    await editWord(updated._id, updated, user.value.token)
     await loadTasks()
     closeAllModals()
   } catch (err) {
@@ -127,10 +129,10 @@ const showOverlay = computed(
 )
 
 watch(
-  () => route.params.id,
-  (newId) => {
-    if (newId != null) {
-      selectedTask.value = tasks.value.find((t) => String(t.id) === String(newId)) || null
+  [() => route.params.id, tasks],
+  ([newId, newTasks]) => {
+    if (newId && newTasks.length > 0) {
+      selectedTask.value = newTasks.find((t) => String(t.id) === String(newId)) || null
     }
   },
   { immediate: true },
@@ -177,5 +179,14 @@ function handleExit() {
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 100;
+}
+
+.home-view {
+  min-height: 100vh;
+  background: #eaeef6;
+}
+
+.dark-theme.home-view {
+  background: #151419;
 }
 </style>
