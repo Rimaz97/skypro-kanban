@@ -1,5 +1,5 @@
 <template>
-  <header class="header">
+  <header class="header" :class="{ 'dark-theme': isDark }">
     <div class="container">
       <div class="header__block">
         <div class="header__left">
@@ -22,7 +22,6 @@
             </router-link>
           </div>
         </div>
-
         <div class="header__right">
           <nav class="header__nav">
             <button
@@ -48,7 +47,8 @@
                   type="checkbox"
                   class="checkbox"
                   name="checkbox"
-                  v-model="darkThemeEnabled"
+                  :checked="isDark"
+                  @change="toggleTheme"
                 />
               </div>
               <button
@@ -67,76 +67,44 @@
   </header>
 </template>
 
-<script>
-import { ref, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+<script setup>
+import { inject, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
-export default {
-  name: 'BaseHeader',
-  setup() {
-    const router = useRouter();
-    const showUserPopup = ref(false);
-    const darkThemeEnabled = ref(false);
-    const userName = ref('');
-    const userEmail = ref('');
+const { user } = inject('auth')
+const router = useRouter()
 
-    onMounted(() => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        try {
-          const { name, login } = JSON.parse(userData);
-          userName.value = name || 'Пользователь';
-          userEmail.value = login || 'email@example.com';
-        } catch (e) {
-          console.error('Ошибка загрузки данных пользователя:', e);
-        }
-      }
+const showUserPopup = ref(false)
+const isDark = inject('isDark')
+const toggleTheme = inject('toggleTheme')
 
-      darkThemeEnabled.value = localStorage.getItem('darkTheme') === 'true';
-      updateTheme();
-    });
+// Имя и email пользователя — computed, чтобы всегда были актуальны
+const userName = computed(() => user.value?.user?.name || 'Пользователь')
+const userEmail = computed(() => user.value?.user?.login || 'email@example.com')
 
-    const updateTheme = () => {
-      if (darkThemeEnabled.value) {
-        document.body.classList.add('dark-theme');
-        localStorage.setItem('darkTheme', 'true');
-      } else {
-        document.body.classList.remove('dark-theme');
-        localStorage.removeItem('darkTheme');
-      }
-    };
+const toggleUserPopup = () => {
+  showUserPopup.value = !showUserPopup.value
+}
 
-    const toggleUserPopup = () => {
-      showUserPopup.value = !showUserPopup.value;
-    };
+const handleExit = () => {
+  router.push('/exit')
+}
 
-    const handleExit = () => {
-      router.push('/exit');
-      showUserPopup.value = false;
-    };
-
-    const openNewCard = () => {
-      router.push('/add-task');
-    };
-
-    watch(darkThemeEnabled, () => {
-      updateTheme();
-    });
-
-    return {
-      showUserPopup,
-      darkThemeEnabled,
-      userName,
-      userEmail,
-      toggleUserPopup,
-      handleExit,
-      openNewCard
-    };
-  }
-};
+const openNewCard = () => {
+  router.push('/add-task')
+}
 </script>
 
 <style scoped>
+.header {
+  background: #fff;
+  transition: background 0.2s;
+}
+
+.dark-theme.header {
+  background: #20202c;
+}
+
 .header__block {
   display: flex;
   justify-content: space-between;
@@ -161,6 +129,23 @@ export default {
   position: relative;
 }
 
+/* Логотипы */
+.header__logo._light {
+  display: block;
+}
+
+.header__logo._dark {
+  display: none;
+}
+
+.dark-theme .header__logo._light {
+  display: none;
+}
+
+.dark-theme .header__logo._dark {
+  display: block;
+}
+
 .user-container {
   position: relative;
   display: flex;
@@ -177,7 +162,7 @@ export default {
 }
 
 .dark-theme .header__user {
-  color: #ffff;
+  color: #fff;
 }
 
 .header__user::after {
@@ -245,6 +230,10 @@ export default {
   color: #94a6be;
   margin-bottom: 15px;
   font-size: 14px;
+}
+
+.dark-theme .pop-user-set__mail {
+  color: #b0b0b0;
 }
 
 .pop-user-set__theme {

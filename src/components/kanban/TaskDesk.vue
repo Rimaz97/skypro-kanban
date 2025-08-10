@@ -1,4 +1,5 @@
 <template>
+  <div class="desk" :class="{ 'dark-theme': isDark }">
   <div class="main__block">
     <div class="container">
       <div class="main__content">
@@ -67,58 +68,52 @@
       </div>
     </div>
   </div>
+  </div>
+
 </template>
 
-<script>
-import { ref, computed } from 'vue'
+<script setup>
+import { ref, inject, defineProps, defineEmits } from 'vue'
 import TaskColumn from './TaskColumn.vue'
 
-export default {
-  name: 'TaskDesk',
-  components: { TaskColumn },
-  props: {
-    tasks: {
-      type: Array,
-      default: () => []
-    },
-    isLoadingProp: Boolean,
-    error: String
+// Props
+const props = defineProps({
+  tasks: {
+    type: Array,
+    default: () => []
   },
-  setup(props, { emit }) {
-    const isLoading = ref(false)
-    const columns = ref([
-      { title: 'Без статуса' },
-      { title: 'Нужно сделать' },
-      { title: 'В работе' },
-      { title: 'Тестирование' },
-      { title: 'Готово' },
-    ])
+  isLoadingProp: Boolean,
+  error: String
+})
 
-    const totalTasks = computed(() => props.tasks.length)
-    const isEmpty = computed(() => totalTasks.value === 0)
+// Emits
+const emit = defineEmits(['add-task', 'open-task', 'reload'])
 
-    const filteredTasks = (status) => {
-      return props.tasks.filter((task) => task.status === status)
-    }
+// Inject theme
+const isDark = inject('isDark')
 
-    const handleAddTask = () => {
-      emit('add-task')
-    }
+// Reactive data
+const columns = ref([
+  { title: 'Без статуса' },
+  { title: 'Нужно сделать' },
+  { title: 'В работе' },
+  { title: 'Тестирование' },
+  { title: 'Готово' },
+])
 
-    const openTask = (task) => {
-      emit('open-task', task)
-    }
+// Computed
 
-    return {
-      isLoading,
-      isEmpty,
-      totalTasks,
-      columns,
-      openTask,
-      filteredTasks,
-      handleAddTask,
-    }
-  },
+// Methods
+const filteredTasks = (status) => {
+  return props.tasks.filter((task) => task.status === status)
+}
+
+const handleAddTask = () => {
+  emit('add-task')
+}
+
+const openTask = (task) => {
+  emit('open-task', task)
 }
 </script>
 
@@ -224,5 +219,16 @@ export default {
 }
 .error-state button:hover {
   background: #e04545;
+}
+
+.desk {
+  background: #eaeef6;
+  min-height: 100vh;
+  padding: 20px;
+  transition: background 0.2s;
+}
+
+.dark-theme.desk {
+  background: #151419;
 }
 </style>

@@ -1,7 +1,5 @@
 <template>
-  <div class="wrapper">
-    <BaseHeader @open-new-card="goToAddTask" @open-exit="goToExit" />
-
+  <div class="wrapper" :class="{ 'dark-theme': isDark }">
     <main class="main">
       <TaskDesk
         :tasks="tasks"
@@ -28,7 +26,7 @@
     />
 
     <EditTaskModal
-      v-if="showEditTaskModal"
+      v-if="showEditTaskModal && selectedTask"
       :task="selectedTask"
       :is-visible="true"
       @save="updateTask"
@@ -39,9 +37,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, provide, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import BaseHeader from '@/components/kanban/BaseHeader.vue'
 import TaskDesk from '@/components/kanban/TaskDesk.vue'
 import ExitModal from '@/components/kanban/ExitModal.vue'
 import NewCardModal from '@/components/kanban/NewCardModal.vue'
@@ -49,6 +46,7 @@ import TaskModal from '@/components/kanban/TaskModal.vue'
 import EditTaskModal from '@/components/kanban/EditTaskModal.vue'
 import { fetchWords, postWord, editWord, deleteWord } from '@/services/api'
 
+const { user, removeUser } = inject('auth')
 const route = useRoute()
 const router = useRouter()
 const tasks = ref([])
@@ -56,9 +54,11 @@ const selectedTask = ref(null)
 const loading = ref(false)
 const error = ref('')
 
-const isAuthenticated = computed(() => {
-  return !!localStorage.getItem('token')
-})
+provide('tasksData', { tasks, loading, error })
+
+const isDark = inject('isDark')
+
+const isAuthenticated = computed(() => !!user.value?.token)
 
 const loadTasks = async () => {
   if (!isAuthenticated.value) return
@@ -66,7 +66,7 @@ const loadTasks = async () => {
   try {
     loading.value = true
     error.value = ''
-    const data = await fetchWords()
+    const data = await fetchWords(user.value.token)
     tasks.value = Array.isArray(data) ? data : []
   } catch (err) {
     error.value = err.message
@@ -84,9 +84,13 @@ onMounted(() => {
   }
 })
 
+watch(user, (val) => {
+  if (val?.token) loadTasks()
+})
+
 const createTask = async (task) => {
   try {
-    await postWord(task)
+    await postWord(task, user.value.token)
     await loadTasks()
     closeAllModals()
   } catch (err) {
@@ -96,7 +100,7 @@ const createTask = async (task) => {
 
 const updateTask = async (updated) => {
   try {
-    await editWord(updated.id, updated)
+    await editWord(updated._id, updated, user.value.token)
     await loadTasks()
     closeAllModals()
   } catch (err) {
@@ -106,7 +110,7 @@ const updateTask = async (updated) => {
 
 const deleteTask = async (id) => {
   try {
-    await deleteWord(id)
+    await deleteWord(id, user.value.token)
     await loadTasks()
     closeAllModals()
   } catch (err) {
@@ -125,10 +129,10 @@ const showOverlay = computed(
 )
 
 watch(
-  () => route.params.id,
-  (newId) => {
-    if (newId != null) {
-      selectedTask.value = tasks.value.find((t) => String(t.id) === String(newId)) || null
+  [() => route.params.id, tasks],
+  ([newId, newTasks]) => {
+    if (newId && newTasks.length > 0) {
+      selectedTask.value = newTasks.find((t) => String(t.id) === String(newId)) || null
     }
   },
   { immediate: true },
@@ -136,9 +140,6 @@ watch(
 
 function goToAddTask() {
   router.push('/add-task')
-}
-function goToExit() {
-  router.push('/exit')
 }
 function goToViewTask(task) {
   selectedTask.value = task
@@ -154,8 +155,7 @@ function closeAllModals() {
 }
 
 function handleExit() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
+  removeUser()
   router.push('/login')
 }
 </script>
@@ -179,5 +179,14 @@ function handleExit() {
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   z-index: 100;
+}
+
+.home-view {
+  min-height: 100vh;
+  background: #eaeef6;
+}
+
+.dark-theme.home-view {
+  background: #151419;
 }
 </style>

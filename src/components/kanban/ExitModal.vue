@@ -14,24 +14,20 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'ExitModal',
-  emits: ['confirm-exit', 'cancel-exit'],
-  setup(props, { emit }) {
-    const confirmExit = () => {
-      emit('confirm-exit')
-    }
+<script setup>
+import { inject } from 'vue'
+import { useRouter } from 'vue-router'
 
-    const cancelExit = () => {
-      emit('cancel-exit')
-    }
+const { removeUser } = inject('auth')
+const router = useRouter()
 
-    return {
-      confirmExit,
-      cancelExit,
-    }
-  },
+const confirmExit = () => {
+  removeUser()
+  router.push('/login')
+}
+
+const cancelExit = () => {
+  router.push('/')
 }
 </script>
 

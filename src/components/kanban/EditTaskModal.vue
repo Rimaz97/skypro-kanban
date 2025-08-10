@@ -1,5 +1,5 @@
 <template>
-  <div class="pop-edit" v-if="isVisible">
+  <div class="pop-edit" v-if="isVisible && task">
     <div class="pop-edit__container">
       <div class="pop-edit__block">
         <div class="pop-edit__content">
@@ -19,7 +19,7 @@
                 v-for="status in statuses"
                 :key="status"
                 class="status-option"
-                :class="{ 'active': selectedStatus === status }"
+                :class="{ active: selectedStatus === status }"
                 @click="selectStatus(status)"
               >
                 {{ status }}
@@ -47,13 +47,37 @@
                   <span class="calendar-title">{{ calendarMonth }}</span>
                   <div class="calendar-nav">
                     <button class="nav-button prev" @click="prevMonth">
-                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M9 5L5 1L1 5" stroke="#94A6BE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <svg
+                        width="10"
+                        height="6"
+                        viewBox="0 0 10 6"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M9 5L5 1L1 5"
+                          stroke="#94A6BE"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
                       </svg>
                     </button>
                     <button class="nav-button next" @click="nextMonth">
-                      <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M1 1L5 5L9 1" stroke="#94A6BE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      <svg
+                        width="10"
+                        height="6"
+                        viewBox="0 0 10 6"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M1 1L5 5L9 1"
+                          stroke="#94A6BE"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -70,8 +94,8 @@
                     class="day"
                     :class="{
                       'current-month': day.isCurrentMonth,
-                      'selected': day.date === selectedDate,
-                      'today': day.isToday
+                      selected: day.date === selectedDate,
+                      today: day.isToday,
                     }"
                     @click="selectDate(day.date)"
                   >
@@ -90,19 +114,11 @@
           <!-- Блок кнопок -->
           <div class="buttons-block">
             <div class="left-buttons">
-              <button class="save-btn" @click="saveChanges">
-                Сохранить
-              </button>
-              <button class="cancel-btn" @click="cancelChanges">
-                Отменить
-              </button>
-              <button class="delete-btn" @click="deleteTask">
-                Удалить задачу
-              </button>
+              <button class="save-btn" @click="saveChanges">Сохранить</button>
+              <button class="cancel-btn" @click="cancelChanges">Отменить</button>
+              <button class="delete-btn" @click="deleteTask">Удалить задачу</button>
             </div>
-            <button class="close-btn" @click="closeModal">
-              Закрыть
-            </button>
+            <button class="close-btn" @click="closeModal">Закрыть</button>
           </div>
         </div>
       </div>
@@ -111,148 +127,152 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, computed } from 'vue'
 
 export default {
   name: 'EditTaskModal',
   props: {
     task: {
       type: Object,
-      required: true
+      required: true,
     },
     isVisible: {
       type: Boolean,
-      required: true
-    }
+      required: true,
+    },
   },
   emits: ['save', 'delete-task', 'close'],
   setup(props, { emit }) {
-    const editedDescription = ref(props.task.description || '');
-    const selectedStatus = ref(props.task.status);
-    const selectedDate = ref(props.task.date);
+    const editedDescription = ref(props.task.description || '')
+    const selectedStatus = ref(props.task.status)
+    const selectedDate = ref(props.task.date)
 
     // Состояния для календаря
-    const currentMonth = ref(new Date().getMonth());
-    const currentYear = ref(new Date().getFullYear());
+    const currentMonth = ref(new Date().getMonth())
+    const currentYear = ref(new Date().getFullYear())
 
     // Все возможные статусы
-    const statuses = ref([
-      'Без статуса',
-      'Нужно сделать',
-      'В работе',
-      'Тестирование',
-      'Готово'
-    ]);
+    const statuses = ref(['Без статуса', 'Нужно сделать', 'В работе', 'Тестирование', 'Готово'])
 
     // Дни недели
-    const weekdays = ref(['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']);
+    const weekdays = ref(['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'])
 
     // Цвет категории
     const categoryColor = computed(() => {
       const colors = {
         'Web Design': '#FFE4C2',
-        'Research': '#B4FDD1',
-        'Copywriting': '#E9D4FF',
-        'QA': '#B4FDD1',
-        'Deployment': '#bae1ff',
+        Research: '#B4FDD1',
+        Copywriting: '#E9D4FF',
+        QA: '#B4FDD1',
+        Deployment: '#bae1ff',
         'Bug Fix': '#ffb3ba',
         'UI/UX': '#FFE4C2',
-        'Backend': '#94A6BE'
-      };
-      return colors[props.task.topic] || '#eaeef6';
-    });
+        Backend: '#94A6BE',
+      }
+      return colors[props.task.topic] || '#eaeef6'
+    })
 
     // Название текущего месяца
     const calendarMonth = computed(() => {
       const months = [
-        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
-      ];
-      return months[currentMonth.value];
-    });
+        'Январь',
+        'Февраль',
+        'Март',
+        'Апрель',
+        'Май',
+        'Июнь',
+        'Июль',
+        'Август',
+        'Сентябрь',
+        'Октябрь',
+        'Ноябрь',
+        'Декабрь',
+      ]
+      return months[currentMonth.value]
+    })
 
     // Форматирование выбранной даты
     const formattedSelectedDate = computed(() => {
-      if (!selectedDate.value) return 'Не выбрано';
-      const date = new Date(selectedDate.value);
+      if (!selectedDate.value) return 'Не выбрано'
+      const date = new Date(selectedDate.value)
       return date.toLocaleDateString('ru-RU', {
         day: '2-digit',
         month: '2-digit',
-        year: 'numeric'
-      });
-    });
+        year: 'numeric',
+      })
+    })
 
     // Генерация дней календаря
     const calendarDays = computed(() => {
-      const days = [];
-      const year = currentYear.value;
-      const month = currentMonth.value;
+      const days = []
+      const year = currentYear.value
+      const month = currentMonth.value
 
       // Первый день месяца
-      const firstDay = new Date(year, month, 1);
+      const firstDay = new Date(year, month, 1)
       // Последний день месяца
-      const lastDay = new Date(year, month + 1, 0);
+      const lastDay = new Date(year, month + 1, 0)
 
       // День недели для первого дня (0 - воскресенье, 1 - понедельник и т.д.)
-      let firstDayOfWeek = firstDay.getDay();
+      let firstDayOfWeek = firstDay.getDay()
       // Корректировка: если воскресенье, то это 0, но нам нужно чтобы было 7
-      if (firstDayOfWeek === 0) firstDayOfWeek = 7;
+      if (firstDayOfWeek === 0) firstDayOfWeek = 7
 
       // Пустые ячейки для дней предыдущего месяца
       for (let i = 1; i < firstDayOfWeek; i++) {
-        days.push({ day: '', date: null, isCurrentMonth: false, isToday: false });
+        days.push({ day: '', date: null, isCurrentMonth: false, isToday: false })
       }
 
       // Дни текущего месяца
       for (let day = 1; day <= lastDay.getDate(); day++) {
-        const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const dateObj = new Date(year, month, day);
-        dateObj.setHours(0, 0, 0, 0);
-        const isToday = dateObj.getTime() === today.getTime();
+        const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const dateObj = new Date(year, month, day)
+        dateObj.setHours(0, 0, 0, 0)
+        const isToday = dateObj.getTime() === today.getTime()
 
         days.push({
           date: dateString,
           day: day,
           isCurrentMonth: true,
-          isToday: isToday
-        });
+          isToday: isToday,
+        })
       }
 
-      return days;
-    });
+      return days
+    })
 
     // Выбор статуса
     const selectStatus = (status) => {
-      selectedStatus.value = status;
-    };
+      selectedStatus.value = status
+    }
 
     // Выбор даты
     const selectDate = (date) => {
       if (date) {
-        selectedDate.value = date;
+        selectedDate.value = date
       }
-    };
+    }
 
     // Навигация по месяцам
     const prevMonth = () => {
       if (currentMonth.value === 0) {
-        currentMonth.value = 11;
-        currentYear.value--;
+        currentMonth.value = 11
+        currentYear.value--
       } else {
-        currentMonth.value--;
+        currentMonth.value--
       }
-    };
+    }
 
     const nextMonth = () => {
       if (currentMonth.value === 11) {
-        currentMonth.value = 0;
-        currentYear.value++;
+        currentMonth.value = 0
+        currentYear.value++
       } else {
-        currentMonth.value++;
+        currentMonth.value++
       }
-    };
+    }
 
     // Сохранение изменений
     const saveChanges = () => {
@@ -260,28 +280,28 @@ export default {
         ...props.task,
         description: editedDescription.value,
         status: selectedStatus.value,
-        date: selectedDate.value
-      };
-      emit('save', updatedTask);
-    };
+        date: selectedDate.value,
+      }
+      emit('save', updatedTask)
+    }
 
     // Отмена изменений
     const cancelChanges = () => {
-      editedDescription.value = props.task.description || '';
-      selectedStatus.value = props.task.status;
-      selectedDate.value = props.task.date;
-      closeModal();
-    };
+      editedDescription.value = props.task.description || ''
+      selectedStatus.value = props.task.status
+      selectedDate.value = props.task.date
+      closeModal()
+    }
 
     // Удаление задачи
     const deleteTask = () => {
-      emit('delete-task', props.task.id);
-    };
+      emit('delete-task', props.task._id)
+    }
 
     // Закрытие модалки
     const closeModal = () => {
-      emit('close');
-    };
+      emit('close')
+    }
 
     return {
       editedDescription,
@@ -300,10 +320,10 @@ export default {
       saveChanges,
       cancelChanges,
       deleteTask,
-      closeModal
-    };
-  }
-};
+      closeModal,
+    }
+  },
+}
 </script>
 
 <style scoped>
@@ -581,7 +601,10 @@ export default {
   gap: 8px;
 }
 
-.save-btn, .cancel-btn, .delete-btn, .close-btn {
+.save-btn,
+.cancel-btn,
+.delete-btn,
+.close-btn {
   height: 30px;
   display: flex;
   justify-content: center;
@@ -595,7 +618,8 @@ export default {
   padding: 10px 14px;
 }
 
-.save-btn, .close-btn {
+.save-btn,
+.close-btn {
   background: #565eef;
   color: white;
   border: none;
@@ -606,7 +630,8 @@ export default {
   background: #7986ff;
 }
 
-.cancel-btn, .delete-btn {
+.cancel-btn,
+.delete-btn {
   border: 0.7px solid #565eef;
   background: transparent;
   color: #565eef;
@@ -631,7 +656,8 @@ export default {
 }
 
 /* Ховер-эффекты */
-.save-btn:hover, .close-btn:hover {
+.save-btn:hover,
+.close-btn:hover {
   background: #4549ca;
 }
 
@@ -640,7 +666,8 @@ export default {
   background: #5d65d4;
 }
 
-.cancel-btn:hover, .delete-btn:hover {
+.cancel-btn:hover,
+.delete-btn:hover {
   background: #565eef;
   color: white;
 }
