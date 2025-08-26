@@ -1,6 +1,6 @@
 <template>
-  <div class="pop-new-card">
-    <div class="pop-new-card__container">
+  <div class="pop-new-card" @click.self="closeModal">
+    <div class="pop-new-card__container" @click.self="closeModal">
       <div class="pop-new-card__block">
         <div class="pop-new-card__content">
           <h3 class="pop-new-card__ttl">Создание задачи</h3>
@@ -11,7 +11,7 @@
             <div class="form-section">
               <form class="pop-new-card__form">
                 <div class="form-new__block">
-                  <label class="subttl">Название задачи</label>
+                  <label class="creation-title">Название задачи</label>
                   <input
                     v-model="taskTitle"
                     type="text"
@@ -20,7 +20,7 @@
                     required
                   />
 
-                  <label class="subttl">Описание задачи</label>
+                  <label class="creation-title">Описание задачи</label>
                   <textarea
                     v-model="taskDescription"
                     class="form-new__area"
@@ -28,7 +28,7 @@
                   ></textarea>
 
                   <div class="categories">
-                    <label class="subttl">Категория</label>
+                    <label class="creation-title">Категория</label>
                     <div class="categories__themes">
                       <div
                         v-for="(category, index) in categories"
@@ -51,7 +51,7 @@
             <!-- Правая часть: календарь -->
             <div class="calendar-section">
               <div class="calendar">
-                <label class="subttl">Даты</label>
+                <label class="creation-title">Даты</label>
 
                 <!-- Заголовок календаря с навигацией -->
                 <div class="calendar-header">
@@ -586,6 +586,16 @@ export default {
   color: #e0e0e0;
 }
 
+.creation-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 16px;
+    padding-bottom: 14px;
+}
+
+.dark-theme .creation-title{
+    color: #fff;
+}
 /* Кнопка создания */
 .button-container {
   display: flex;
@@ -614,6 +624,14 @@ export default {
 
 /* Адаптация для мобильных */
 @media (max-width: 768px) {
+
+  .pop-new-card__block {
+        max-width: unset;
+        width: unset;
+        max-height: unset;
+        border-radius: 0;
+}
+
   .pop-new-card__wrap {
     flex-direction: column;
   }
@@ -621,11 +639,11 @@ export default {
   .calendar-section {
     order: -1;
     margin-bottom: 20px;
+    max-width: 100%;
   }
 
   .calendar {
     width: 100%;
-    max-width: 280px;
   }
 
   .calendar__cell {
@@ -637,4 +655,5 @@ export default {
   }
 }
 </style>
+
 

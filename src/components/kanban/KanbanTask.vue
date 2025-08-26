@@ -1,18 +1,11 @@
 <template>
   <div class="cards__item" :class="{ 'dark-theme': isDark }">
     <div class="cards__card card" @click="openTaskCard">
-      <div class="card__group">
+
         <div :class="['card__theme', themeClass]">
           <p>{{ task.topic }}</p>
         </div>
-        <a @click.stop="openTaskMenu">
-          <div class="card__btn">
-            <div></div>
-            <div></div>
-            <div></div>
-          </div>
-        </a>
-      </div>
+
       <div class="card__content">
         <h3 class="card__title">{{ task.title }}</h3>
         <div class="card__date">
@@ -85,11 +78,6 @@ const themeClass = computed(() => {
 function openTaskCard() {
   emit('open-task', task)
 }
-
-function openTaskMenu(event) {
-  event.stopPropagation()
-  emit('open-task', task)
-}
 </script>
 
 <style scoped>
@@ -110,7 +98,10 @@ function openTaskMenu(event) {
 }
 
 .dark-theme .cards__card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-3px);
+  box-shadow:
+    0 4px 25px rgba(255, 255, 255, 0.2),
+    0 4px 15px rgba(255, 255, 255, 0.15);
 }
 
 .card__title {
@@ -127,5 +118,50 @@ function openTaskMenu(event) {
 
 .dark-theme .card__date p {
   color: #b0b0b0;
+}
+
+/* Стили для кнопки меню */
+.card__btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 24px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.card__btn:hover {
+  border-color: #e5e5e5;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.card__btn:active {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.card__btn div {
+  width: 100%;
+  height: 2px;
+  background: #94A6BE;
+  border-radius: 1px;
+}
+
+/* Стили для темной темы */
+.card__btn.dark-theme:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.card__btn.dark-theme:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.card__btn.dark-theme div {
+  background: rgba(255, 255, 255, 0.7);
 }
 </style>

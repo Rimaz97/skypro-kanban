@@ -1,6 +1,6 @@
 <template>
-  <div class="pop-exit">
-    <div class="pop-exit__container">
+  <div class="pop-exit" @click.self="cancelExit">
+    <div class="pop-exit__container" @click.self="cancelExit">
       <div class="pop-exit__block">
         <div class="pop-exit__ttl">
           <h2>Выйти из аккаунта?</h2>
@@ -42,6 +42,7 @@ const cancelExit = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .pop-exit__container {
@@ -70,6 +71,11 @@ const cancelExit = () => {
   text-align: center;
   margin-bottom: 25px;
   font-size: 22px;
+  color: #000;
+}
+
+.dark-theme .pop-exit__ttl h2 {
+  color: #fff;
 }
 
 .pop-exit__form-group {
@@ -117,5 +123,6 @@ const cancelExit = () => {
 
 .dark-theme .pop-exit__exit-no:hover {
   background: #7986ff;
+  color: #fff;
 }
 </style>

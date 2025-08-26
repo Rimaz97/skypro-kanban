@@ -262,7 +262,7 @@ body {
 		margin-bottom: 30px;
 
 		& p {
-			color: #000;
+
 			font-size: 14px;
 			line-height: 21px;
 			letter-spacing: -0.14px;
@@ -625,7 +625,6 @@ body {
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		background: rgba(0, 0, 0, 0.40);
 	}
 
 	&__block {
@@ -1133,7 +1132,7 @@ body {
 		}
 
 		&__cell {
-			width: 42px;
+			width: 39px;
 			height: 42px;
 			font-size: 14px;
 		}

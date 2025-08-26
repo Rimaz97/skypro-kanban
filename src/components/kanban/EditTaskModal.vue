@@ -1,5 +1,5 @@
 <template>
-  <div class="pop-edit" v-if="isVisible && task">
+  <div class="pop-edit" v-if="isVisible && task" @click.self="closeModal">
     <div class="pop-edit__container">
       <div class="pop-edit__block">
         <div class="pop-edit__content">
@@ -248,7 +248,7 @@ export default {
       selectedStatus.value = status
     }
 
-    // Выбор даты
+    // Выбор дата
     const selectDate = (date) => {
       if (date) {
         selectedDate.value = date
@@ -276,9 +276,14 @@ export default {
 
     // Сохранение изменений
     const saveChanges = () => {
+      if (!editedDescription.value.trim()) {
+        alert('Описание задачи не может быть пустым')
+        return
+      }
+
       const updatedTask = {
         ...props.task,
-        description: editedDescription.value,
+        description: editedDescription.value.trim(),
         status: selectedStatus.value,
         date: selectedDate.value,
       }
@@ -339,10 +344,18 @@ export default {
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.4);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.pop-edit__container {
+  width: 100%;
+  max-width: 630px;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .pop-edit__block {
-  max-width: 630px;
   width: 100%;
   background: white;
   border: 0.7px solid #d4dbe5;
@@ -382,6 +395,7 @@ export default {
   line-height: 23px;
   color: #000;
   margin: 0;
+  word-break: break-word;
 }
 
 .dark-theme .pop-edit__ttl {
@@ -394,6 +408,7 @@ export default {
   font-size: 14px;
   font-weight: 600;
   color: #000;
+  flex-shrink: 0;
 }
 
 .dark-theme .category-badge {
@@ -426,6 +441,7 @@ export default {
   color: #94a6be;
   cursor: pointer;
   transition: all 0.3s;
+  white-space: nowrap;
 }
 
 .status-option.active {
@@ -470,6 +486,7 @@ export default {
   border-radius: 8px;
   resize: vertical;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 .dark-theme .description-textarea {
@@ -483,7 +500,6 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-width: 168px;
 }
 
 .date-label {
@@ -594,11 +610,14 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .left-buttons {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .save-btn,
@@ -616,6 +635,8 @@ export default {
   cursor: pointer;
   transition: all 0.3s;
   padding: 10px 14px;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .save-btn,
@@ -675,5 +696,126 @@ export default {
 .dark-theme .cancel-btn:hover,
 .dark-theme .delete-btn:hover {
   background: #7986ff;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .pop-edit {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+  .pop-edit__container {
+    max-width: 100%;
+  }
+
+  .pop-edit__block {
+    padding: 20px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .top-block {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .content-block {
+    flex-direction: column;
+  }
+
+  .description-section {
+    width: 100%;
+  }
+
+  .date-section {
+    width: 100%;
+  }
+
+  .calendar {
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  .calendar-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .calendar-days {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .day {
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .buttons-block {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .left-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .save-btn,
+  .cancel-btn,
+  .delete-btn,
+  .close-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .close-btn {
+    margin-bottom: 10px;
+  }
+
+}
+
+@media (max-width: 480px) {
+  .pop-edit {
+    padding: 0;
+  }
+
+  .pop-edit__block {
+    border-radius: 0;
+    padding: 15px;
+  }
+
+  .pop-edit__ttl {
+    font-size: 18px;
+  }
+
+  .description-textarea {
+    height: 150px;
+  }
+
+  .calendar {
+    max-width: 100%;
+  }
+
+  .calendar-header {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .weekdays {
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  .weekday {
+    font-size: 9px;
+  }
+
+  .day {
+    height: 25px;
+    font-size: 10px;
+  }
 }
 </style>

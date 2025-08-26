@@ -1,5 +1,5 @@
 <template>
-  <div class="pop-browse" v-if="isVisible">
+  <div class="pop-browse" v-if="isVisible" @click.self="closeModal">
     <div class="pop-browse__container">
       <div class="pop-browse__block">
         <div class="pop-browse__content">
@@ -302,10 +302,18 @@ export default {
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.4);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.pop-browse__container {
+  width: 100%;
+  max-width: 630px;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .pop-browse__block {
-  max-width: 630px;
   width: 100%;
   background: white;
   border: 0.7px solid #d4dbe5;
@@ -328,6 +336,8 @@ export default {
   width: 100%;
   max-width: 570px;
   margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .pop-browse__ttl {
@@ -336,6 +346,7 @@ export default {
   line-height: 23px;
   color: #000;
   margin: 0;
+  word-break: break-word;
 }
 
 .dark-theme .pop-browse__ttl {
@@ -348,10 +359,11 @@ export default {
   font-size: 14px;
   font-weight: 600;
   color: #000;
+  flex-shrink: 0;
 }
 
 .dark-theme .category-badge {
-  color: #000; /* Цвет текста остается черным для контраста */
+  color: #000;
 }
 
 /* Блок статуса */
@@ -424,7 +436,7 @@ export default {
   border-radius: 8px;
   background: #eaeef6;
   width: 100%;
-  height: 100%;
+  min-height: 150px;
   display: flex;
   padding: 14px;
 }
@@ -441,13 +453,14 @@ export default {
   margin: 0;
   text-align: left;
   align-self: flex-start;
+  word-break: break-word;
 }
 
 .dark-theme .description-text {
   color: #e0e0e0;
 }
 
-/* Секция календаря - точные стили как в окне создания */
+/* Секция календаря */
 .calendar {
   width: 182px;
   margin-bottom: 0;
@@ -458,6 +471,10 @@ export default {
   font-weight: 600;
   line-height: 16px;
   padding-bottom: 14px;
+}
+
+.dark-theme .date-label {
+  color: #fff;
 }
 
 .calendar-header {
@@ -566,6 +583,8 @@ export default {
   align-items: center;
   width: 100%;
   max-width: 570px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .left-buttons {
@@ -574,6 +593,7 @@ export default {
   justify-content: flex-start;
   align-items: flex-start;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .edit-btn,
@@ -589,6 +609,7 @@ export default {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
+  white-space: nowrap;
 }
 
 .edit-btn,
@@ -638,5 +659,108 @@ export default {
 
 .dark-theme .close-btn:hover {
   background: #5d65d4;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .pop-browse {
+    padding: 10px;
+    align-items: flex-end;
+  }
+
+  .pop-browse__container {
+    max-width: 100%;
+  }
+
+  .pop-browse__block {
+    padding: 20px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .top-block {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .content-block {
+    flex-direction: column;
+  }
+
+  .description-section {
+    width: 100%;
+  }
+
+  .calendar {
+    width: 100%;
+  }
+
+  .calendar-days {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .buttons-block {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .left-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .edit-btn,
+  .delete-btn {
+    max-width: 100%;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .close-btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pop-browse {
+    padding: 0;
+  }
+
+  .pop-browse__block {
+    border-radius: 0;
+    padding: 15px;
+  }
+
+  .pop-browse__ttl {
+    font-size: 18px;
+  }
+
+  .status-value {
+    width: 100%;
+  }
+
+  .calendar-header {
+    gap: 10px;
+    align-items: center;
+  }
+
+  .calendar-title {
+    text-align: center;
+  }
+
+  .calendar-days {
+        width: 100%;
+        display: grid;
+        justify-content: center;
+        grid-template-columns: repeat(7, 1fr);
+    }
+  .day{
+    width: unset;
+  }
+
+  .weekdays{
+    padding: 0;
+  }
 }
 </style>
