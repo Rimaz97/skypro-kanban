@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import EditTaskModal from '@/components/kanban/EditTaskModal.vue';
+import EditTaskModal from '@/components/kanban/EditTaskModal.vue'
 
 export default {
   name: 'EditTaskView',
@@ -14,11 +14,11 @@ export default {
   methods: {
     saveChanges(updatedTask) {
       // Логика для сохранения изменений задачи
-      console.log('Задача обновлена:', updatedTask);
+      console.log('Задача обновлена:', updatedTask)
     },
     closeModal() {
       // Закрытие модального окна
-    }
-  }
+    },
+  },
 }
 </script>

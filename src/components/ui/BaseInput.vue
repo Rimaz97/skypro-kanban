@@ -12,31 +12,31 @@
 </template>
 
 <script setup>
-import { inject, defineProps, defineEmits } from 'vue'
+import { inject } from 'vue'
 
 const isDark = inject('isDark')
 
 const { modelValue, type, name, id, placeholder } = defineProps({
   id: {
     type: String,
-    required: true
+    required: true,
   },
   name: {
     type: String,
-    required: true
+    required: true,
   },
   placeholder: {
     type: String,
-    default: ''
+    default: '',
   },
   type: {
     type: String,
-    default: 'text'
+    default: 'text',
   },
   modelValue: {
     type: [String, Number],
-    default: ''
-  }
+    default: '',
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -54,7 +54,10 @@ const updateValue = (event) => {
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
-  transition: border-color 0.3s, background 0.3s, color 0.3s;
+  transition:
+    border-color 0.3s,
+    background 0.3s,
+    color 0.3s;
   background: #fff;
   color: #000;
 }

@@ -35,11 +35,7 @@
               <span class="header__user _hover02"> {{ userName }} </span>
             </div>
             <div class="popup-overlay" v-show="showUserPopup" @click="closePopup"></div>
-            <div
-              class="header__pop-user-set pop-user-set"
-              v-show="showUserPopup"
-              @click.stop
-            >
+            <div class="header__pop-user-set pop-user-set" v-show="showUserPopup" @click.stop>
               <p class="pop-user-set__name">{{ userName }}</p>
               <p class="pop-user-set__mail">{{ userEmail }}</p>
               <div class="pop-user-set__theme">
@@ -232,7 +228,7 @@ const openNewCard = () => {
 
 .dark-theme .header__pop-user-set {
   background: #20202c;
-    box-shadow:
+  box-shadow:
     0 4px 20px rgba(255, 255, 255, 0.15),
     0 4px 10px rgba(255, 255, 255, 0.1);
 }

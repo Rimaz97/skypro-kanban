@@ -1,10 +1,9 @@
 <template>
   <div class="cards__item" :class="{ 'dark-theme': isDark }">
     <div class="cards__card card" @click="openTaskCard">
-
-        <div :class="['card__theme', themeClass]">
-          <p>{{ task.topic }}</p>
-        </div>
+      <div :class="['card__theme', themeClass]">
+        <p>{{ task.topic }}</p>
+      </div>
 
       <div class="card__content">
         <h3 class="card__title">{{ task.title }}</h3>
@@ -38,7 +37,7 @@
 </template>
 
 <script setup>
-import { inject, computed, defineProps, defineEmits } from 'vue'
+import { inject, computed} from 'vue'
 
 const isDark = inject('isDark')
 
@@ -113,7 +112,7 @@ function openTaskCard() {
 }
 
 .card__date p {
-  color: #94A6BE;
+  color: #94a6be;
 }
 
 .dark-theme .card__date p {
@@ -147,7 +146,7 @@ function openTaskCard() {
 .card__btn div {
   width: 100%;
   height: 2px;
-  background: #94A6BE;
+  background: #94a6be;
   border-radius: 1px;
 }
 

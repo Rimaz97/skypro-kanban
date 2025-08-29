@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { inject, defineProps, defineEmits, ref, onMounted, onBeforeUnmount, computed } from 'vue'
+import { inject, ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import KanbanTask from './KanbanTask.vue'
 import draggable from 'vuedraggable'
 
@@ -63,10 +63,18 @@ const emit = defineEmits(['open-task', 'list-changed'])
 const dragGroup = { name: 'kanban', pull: true, put: true }
 const itemKey = (task) => task?.id ?? task?._id
 
-function openTask(task) { emit('open-task', task) }
-function onChange(evt) { emit('list-changed', { evt, status: props.title }) }
-function onAdd(evt) { emit('list-changed', { evt, status: props.title }) }
-function onRemove(evt) { emit('list-changed', { evt, status: props.title }) }
+function openTask(task) {
+  emit('open-task', task)
+}
+function onChange(evt) {
+  emit('list-changed', { evt, status: props.title })
+}
+function onAdd(evt) {
+  emit('list-changed', { evt, status: props.title })
+}
+function onRemove(evt) {
+  emit('list-changed', { evt, status: props.title })
+}
 
 // Динамический skeletonCount по высоте .cards
 const cardsRef = ref(null)
@@ -101,19 +109,24 @@ const skeletonCount = computed(() => {
 }
 
 .column:hover {
-
   border: 1px dashed rgba(148, 166, 190, 1);
   border-radius: 10px;
 }
 
-
-.column__title p { color: #000; }
-.dark-theme .column__title p { color: #fff; }
+.column__title p {
+  color: #000;
+}
+.dark-theme .column__title p {
+  color: #fff;
+}
 
 .cards {
   flex: 1;
   min-height: 200px;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
   border: 2px dashed transparent; /* по умолчанию невидима */
   border-radius: 8px;
   display: flex;
@@ -126,13 +139,22 @@ const skeletonCount = computed(() => {
   align-items: center;
   justify-content: center;
   min-height: 48px;
-  color: #94A6BE;
+  color: #94a6be;
   font-size: 12px;
 }
-.dark-theme .empty-hint { color: rgba(255,255,255,0.55); }
+.dark-theme .empty-hint {
+  color: rgba(255, 255, 255, 0.55);
+}
 
 /* skeletons */
-@keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
 
 .skeleton-card {
   background: var(--skeleton-bg, #fff);
@@ -151,34 +173,75 @@ const skeletonCount = computed(() => {
 .skeleton-line {
   height: 12px;
   border-radius: 6px;
-  background: linear-gradient(90deg, rgba(148,166,190,0.18) 25%, rgba(148,166,190,0.28) 37%, rgba(148,166,190,0.18) 63%);
+  background: linear-gradient(
+    90deg,
+    rgba(148, 166, 190, 0.18) 25%,
+    rgba(148, 166, 190, 0.28) 37%,
+    rgba(148, 166, 190, 0.18) 63%
+  );
   background-size: 800px 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 }
 .dark-theme .skeleton-line {
-  background: linear-gradient(90deg, rgba(255,255,255,0.08) 25%, rgba(255,255,255,0.16) 37%, rgba(255,255,255,0.08) 63%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(255, 255, 255, 0.16) 37%,
+    rgba(255, 255, 255, 0.08) 63%
+  );
   background-size: 800px 100%;
 }
 
-.skeleton-line.title { width: 70%; height: 14px; }
-.skeleton-line.short { width: 45%; }
-.skeleton-line.long { width: 90%; }
+.skeleton-line.title {
+  width: 70%;
+  height: 14px;
+}
+.skeleton-line.short {
+  width: 45%;
+}
+.skeleton-line.long {
+  width: 90%;
+}
 
-.skeleton-footer { display: flex; gap: 8px; margin-top: 4px; }
+.skeleton-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
 .skeleton-chip {
-  height: 20px; width: 80px; border-radius: 10px;
-  background: linear-gradient(90deg, rgba(148,166,190,0.18) 25%, rgba(148,166,190,0.28) 37%, rgba(148,166,190,0.18) 63%);
+  height: 20px;
+  width: 80px;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(148, 166, 190, 0.18) 25%,
+    rgba(148, 166, 190, 0.28) 37%,
+    rgba(148, 166, 190, 0.18) 63%
+  );
   background-size: 800px 100%;
   animation: shimmer 1.4s ease-in-out infinite;
 }
 .dark-theme .skeleton-chip {
-  background: linear-gradient(90deg, rgba(255,255,255,0.08) 25%, rgba(255,255,255,0.16) 37%, rgba(255,255,255,0.08) 63%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(255, 255, 255, 0.16) 37%,
+    rgba(255, 255, 255, 0.08) 63%
+  );
 }
-.skeleton-chip.small { width: 52px; }
+.skeleton-chip.small {
+  width: 52px;
+}
 
-.drag-ghost { opacity: 0.5; }
-.drag-chosen { transform: rotate(1deg); }
-.drag-dragging { cursor: grabbing; }
+.drag-ghost {
+  opacity: 0.5;
+}
+.drag-chosen {
+  transform: rotate(1deg);
+}
+.drag-dragging {
+  cursor: grabbing;
+}
 
 /* Видимый плейсхолдер во время перетаскивания — подсветка только места вставки */
 .drop-placeholder {
@@ -196,7 +259,7 @@ const skeletonCount = computed(() => {
   align-items: center;
   justify-content: center;
   min-height: 48px;
-  color: #94A6BE;
+  color: #94a6be;
   font-size: 12px;
   border: 1px dashed rgba(148, 166, 190, 0.9);
   border-radius: 10px;

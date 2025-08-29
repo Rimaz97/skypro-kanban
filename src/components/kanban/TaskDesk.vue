@@ -68,14 +68,14 @@
 </template>
 
 <script setup>
-import { ref, inject, defineProps, defineEmits, watch, computed } from 'vue'
+import { ref, inject, watch, computed } from 'vue'
 import TaskColumn from './TaskColumn.vue'
 import { editWord } from '@/services/api'
 
 const props = defineProps({
   tasks: { type: Array, default: () => [] },
   isLoadingProp: Boolean,
-  error: String
+  error: String,
 })
 
 const emit = defineEmits(['add-task', 'open-task', 'reload'])
@@ -97,11 +97,11 @@ const listDone = ref([])
 const lastSnapshot = ref([])
 
 function initListsFromProps() {
-  listNone.value = props.tasks.filter(t => t.status === 'Без статуса')
-  listTodo.value = props.tasks.filter(t => t.status === 'Нужно сделать')
-  listProgress.value = props.tasks.filter(t => t.status === 'В работе')
-  listTest.value = props.tasks.filter(t => t.status === 'Тестирование')
-  listDone.value = props.tasks.filter(t => t.status === 'Готово')
+  listNone.value = props.tasks.filter((t) => t.status === 'Без статуса')
+  listTodo.value = props.tasks.filter((t) => t.status === 'Нужно сделать')
+  listProgress.value = props.tasks.filter((t) => t.status === 'В работе')
+  listTest.value = props.tasks.filter((t) => t.status === 'Тестирование')
+  listDone.value = props.tasks.filter((t) => t.status === 'Готово')
   lastSnapshot.value = snapshotAll()
 }
 
@@ -117,10 +117,10 @@ function buildAllTasks() {
 }
 
 function snapshotAll() {
-  return buildAllTasks().map(t => ({
+  return buildAllTasks().map((t) => ({
     id: t.id ?? t._id,
     status: t.status,
-    order: t.order ?? 0
+    order: t.order ?? 0,
   }))
 }
 
@@ -129,7 +129,7 @@ async function onAnyListChanged() {
   const prev = lastSnapshot.value
   const changes = []
 
-  const mapPrev = new Map(prev.map(t => [String(t.id), t]))
+  const mapPrev = new Map(prev.map((t) => [String(t.id), t]))
 
   for (const t of all) {
     const id = t.id ?? t._id
@@ -141,7 +141,7 @@ async function onAnyListChanged() {
         id,
         task: t,
         status: t.status,
-        order: t.order
+        order: t.order,
       })
     }
   }
@@ -153,7 +153,7 @@ async function onAnyListChanged() {
       const updatedTask = {
         ...ch.task,
         status: ch.status,
-        order: ch.order
+        order: ch.order,
       }
       await editWord(ch.id, updatedTask, token.value)
     } catch (e) {
@@ -185,7 +185,9 @@ function handleListChanged({ evt, status }) {
   text-align: center;
   color: #ff5252;
 }
-.error-state svg { stroke: #ff5252; }
+.error-state svg {
+  stroke: #ff5252;
+}
 .error-state button {
   margin-top: 12px;
   padding: 10px 22px;

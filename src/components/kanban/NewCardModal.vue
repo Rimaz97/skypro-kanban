@@ -116,6 +116,21 @@
       </div>
     </div>
   </div>
+  <div v-if="showErrorModal" class="pop-error" @click.self="showErrorModal = false">
+  <div class="pop-error__container" @click.self="showErrorModal = false">
+    <div class="pop-error__block">
+      <div class="pop-error__ttl">
+        <h2>{{ errorTitle }}</h2>
+      </div>
+      <div class="pop-error__message">
+        <p>{{ errorMessage }}</p>
+      </div>
+      <div class="pop-error__form-group">
+        <button class="pop-error__ok-btn _hover01" @click="showErrorModal = false">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
 </template>
 
 <script>
@@ -125,11 +140,22 @@ export default {
   name: 'NewCardModal',
   emits: ['create-task', 'close'],
   setup(props, { emit }) {
+
     // Данные формы
     const taskTitle = ref('')
     const taskDescription = ref('')
     const selectedCategory = ref(null)
     const selectedDate = ref(null)
+
+const showErrorModal = ref(false)
+const errorTitle = ref('')
+const errorMessage = ref('')
+
+const showError = (title, message) => {
+  errorTitle.value = title
+  errorMessage.value = message
+  showErrorModal.value = true
+}
 
     // Категории и цвета
     const categories = ref(['Web Design', 'Research', 'Copywriting', 'QA', 'Deployment'])
@@ -243,9 +269,20 @@ export default {
 
     // Создание задачи
     const createTask = () => {
+      // Валидация
+      if (!taskTitle.value.trim()) {
+        showError('Ошибка', 'Название задачи не может быть пустым!')
+        return
+      }
+
+      if (!selectedCategory.value) {
+        showError('Ошибка', 'Выберите категорию задачи!')
+        return
+      }
+
       const newTask = {
         topic: selectedCategory.value,
-        title: taskTitle.value,
+        title: taskTitle.value.trim(),
         description: taskDescription.value,
         date: selectedDate.value,
         status: 'Без статуса',
@@ -285,7 +322,11 @@ export default {
       weekdays,
       calendarTitle,
       prevMonth,
-      nextMonth
+      nextMonth,
+        showErrorModal,
+  errorTitle,
+  errorMessage,
+  showError
     }
   }
 }
@@ -439,7 +480,7 @@ export default {
 }
 
 .calendar-title {
-  color: #94A6BE;
+  color: #94a6be;
   font-family: 'Roboto', sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -489,7 +530,7 @@ export default {
 .weekday {
   font-size: 10px;
   font-weight: 500;
-  color: #94A6BE;
+  color: #94a6be;
 }
 
 .calendar__content {
@@ -513,7 +554,7 @@ export default {
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
-  color: #94A6BE;
+  color: #94a6be;
   font-family: 'Roboto', sans-serif;
   font-size: 10px;
   font-weight: 400;
@@ -523,7 +564,7 @@ export default {
 }
 
 .dark-theme .calendar__cell {
-  color: #94A6BE;
+  color: #94a6be;
 }
 
 .calendar__cell:hover {
@@ -544,7 +585,7 @@ export default {
 }
 
 .calendar__cell._active-day {
-  background-color: #94A6BE !important;
+  background-color: #94a6be !important;
   color: white !important;
   font-weight: 400;
 }
@@ -557,7 +598,7 @@ export default {
 }
 
 .select-date-prompt {
-  color: #94A6BE;
+  color: #94a6be;
   font-family: 'Roboto', sans-serif;
   font-size: 10px;
   font-weight: 400;
@@ -570,7 +611,7 @@ export default {
 
 .selected-date {
   font-size: 10px;
-  color: #94A6BE;
+  color: #94a6be;
   text-align: left;
   width: 100%;
   margin-top: 5px;
@@ -587,14 +628,14 @@ export default {
 }
 
 .creation-title {
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 16px;
-    padding-bottom: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  padding-bottom: 14px;
 }
 
-.dark-theme .creation-title{
-    color: #fff;
+.dark-theme .creation-title {
+  color: #fff;
 }
 /* Кнопка создания */
 .button-container {
@@ -622,15 +663,97 @@ export default {
   box-shadow: 0 4px 12px rgba(86, 94, 239, 0.3);
 }
 
+.pop-error {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.pop-error__container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pop-error__block {
+  background: white;
+  border-radius: 10px;
+  padding: 30px;
+  max-width: 370px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  z-index: 300;
+}
+
+.dark-theme .pop-error__block {
+  background: #20202c;
+}
+
+.pop-error__ttl h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 22px;
+  color: #000;
+}
+
+.dark-theme .pop-error__ttl h2 {
+  color: #fff;
+}
+
+.pop-error__message {
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.pop-error__message p {
+  color: #000;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.dark-theme .pop-error__message p {
+  color: #fff;
+}
+
+.pop-error__form-group {
+  display: flex;
+  justify-content: center;
+}
+
+.pop-error__ok-btn {
+  height: 45px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  padding: 0 30px;
+  background: #565eef;
+  color: white;
+  border: none;
+}
+
+.pop-error__ok-btn:hover {
+  background: #4549ca;
+  transform: translateY(-2px);
+}
+
 /* Адаптация для мобильных */
 @media (max-width: 768px) {
-
   .pop-new-card__block {
-        max-width: unset;
-        width: unset;
-        max-height: unset;
-        border-radius: 0;
-}
+    max-width: unset;
+    width: unset;
+    max-height: unset;
+    border-radius: 0;
+  }
 
   .pop-new-card__wrap {
     flex-direction: column;
@@ -655,5 +778,3 @@ export default {
   }
 }
 </style>
-
-

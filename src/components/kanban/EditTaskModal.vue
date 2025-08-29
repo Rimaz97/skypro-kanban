@@ -143,6 +143,10 @@ export default {
   },
   emits: ['save', 'delete-task', 'close'],
   setup(props, { emit }) {
+    if (!props.task) {
+      emit('close')
+      return
+    }
     const editedDescription = ref(props.task.description || '')
     const selectedStatus = ref(props.task.status)
     const selectedDate = ref(props.task.date)
@@ -775,7 +779,6 @@ export default {
   .close-btn {
     margin-bottom: 10px;
   }
-
 }
 
 @media (max-width: 480px) {

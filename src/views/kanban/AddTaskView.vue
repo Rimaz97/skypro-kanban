@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import NewCardModal from '@/components/kanban/NewCardModal.vue';
+import NewCardModal from '@/components/kanban/NewCardModal.vue'
 
 export default {
   name: 'AddTaskView',
@@ -15,11 +15,11 @@ export default {
   methods: {
     createTask(newTask) {
       // Логика для создания задачи
-      console.log('Создана новая задача:', newTask);
+      console.log('Создана новая задача:', newTask)
     },
     closeModal() {
       // Закрытие модального окна
-    }
-  }
+    },
+  },
 }
 </script>

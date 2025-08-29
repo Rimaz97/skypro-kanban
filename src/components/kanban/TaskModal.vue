@@ -131,9 +131,13 @@ export default {
   },
   emits: ['delete-task', 'close', 'open-edit'],
   setup(props, { emit }) {
+    if (!props.task) {
+      emit('close')
+      return
+    }
     // Форматирование даты
     const formattedDate = computed(() => {
-      if (!props.task.date) return 'Не установлен'
+      if (!props.task || !props.task.date) return 'Не установлен'
       const date = new Date(props.task.date)
       return date.toLocaleDateString('ru-RU', {
         day: '2-digit',
@@ -144,6 +148,7 @@ export default {
 
     // Цвет категории
     const categoryColor = computed(() => {
+      if (!props.task || !props.task.topic) return '#eaeef6'
       const colors = {
         'Web Design': '#FFE4C2',
         Research: '#B4FDD1',
@@ -750,16 +755,16 @@ export default {
   }
 
   .calendar-days {
-        width: 100%;
-        display: grid;
-        justify-content: center;
-        grid-template-columns: repeat(7, 1fr);
-    }
-  .day{
+    width: 100%;
+    display: grid;
+    justify-content: center;
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .day {
     width: unset;
   }
 
-  .weekdays{
+  .weekdays {
     padding: 0;
   }
 }

@@ -1,8 +1,10 @@
 <template>
   <div class="wrapper">
     <BaseHeader @open-new-card="goToAddTask" @open-exit="goToExit" v-if="showHeader" />
-    <RouterView /> <!-- основной контент -->
-    <RouterView name="modal" /> <!-- модалки -->
+    <RouterView />
+    <!-- основной контент -->
+    <RouterView name="modal" />
+    <!-- модалки -->
   </div>
 </template>
 
@@ -48,7 +50,7 @@ function removeUserInfo() {
 provide('auth', {
   user: userInfo,
   setUser: setUserInfo,
-  removeUser: removeUserInfo
+  removeUser: removeUserInfo,
 })
 
 function goToAddTask() {
