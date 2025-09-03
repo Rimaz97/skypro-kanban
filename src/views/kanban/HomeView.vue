@@ -14,11 +14,7 @@
 
     <ExitModal v-if="showExitModal" @confirm-exit="handleExit" @cancel-exit="closeAllModals" />
 
-<NewCardModal
-  v-if="showNewCardModal"
-  @create-task="createTask"
-  @close="closeAllModals"
-/>
+    <NewCardModal v-if="showNewCardModal" @create-task="createTask" @close="closeAllModals" />
     <TaskModal
       v-if="showTaskModal"
       :task="selectedTask"
@@ -37,7 +33,7 @@
       @close="closeAllModals"
     />
 
-        <NotificationModal
+    <NotificationModal
       v-if="showNotificationModal"
       :title="notificationTitle"
       :message="notificationMessage"
@@ -101,25 +97,31 @@ watch(user, (val) => {
 
 const createTask = async (task) => {
   try {
-    const newTask = await postWord(task, user.value.token)
-    // Добавляем новую задачу в начало массива
-    tasks.value.unshift(newTask)
-    closeAllModals()
+    // Отправляем задачу на сервер
+    await postWord(task, user.value.token);
+
+    // Закрываем модальное окно создания задачи
+    closeAllModals();
+
+    // Обновляем страницу после небольшой задержки
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   } catch (err) {
-    error.value = err.message
+    console.error('Ошибка при создании задачи:', err);
+    error.value = err.message;
   }
 }
 
 const updateTask = async (updated) => {
   try {
-    const updatedTask = await editWord(updated._id, updated, user.value.token)
-    // Находим и обновляем задачу в массиве
-    const index = tasks.value.findIndex(task => task._id === updated._id)
-    if (index !== -1) {
-      tasks.value[index] = updatedTask
-    }
+    await editWord(updated._id, updated, user.value.token)
     closeAllModals()
+    setTimeout(() => {
+      window.location.reload()
+    }, 100)
   } catch (err) {
+    console.error('Ошибка при обновлении задачи:', err)
     error.value = err.message
   }
 }
@@ -149,8 +151,6 @@ const showOverlay = computed(
 const showNotificationModal = ref(false)
 const notificationTitle = ref('')
 const notificationMessage = ref('')
-
-
 
 const hideNotification = () => {
   showNotificationModal.value = false

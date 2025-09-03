@@ -16,16 +16,20 @@
                     v-model="taskTitle"
                     type="text"
                     class="form-new__input"
+                    :class="{ 'error': errors.title }"
                     placeholder="Введите название"
                     required
                   />
+                  <span v-if="errors.title" class="error-message">{{ errors.title }}</span>
 
                   <label class="creation-title">Описание задачи</label>
                   <textarea
                     v-model="taskDescription"
                     class="form-new__area"
+                    :class="{ 'error': errors.description }"
                     placeholder="Введите описание"
                   ></textarea>
+                  <span v-if="errors.description" class="error-message">{{ errors.description }}</span>
 
                   <div class="categories">
                     <label class="creation-title">Категория</label>
@@ -36,6 +40,7 @@
                         :class="[
                           'categories__theme',
                           { '_active-category': selectedCategory === category },
+                          { 'error': errors.category }
                         ]"
                         :style="{ backgroundColor: categoryColors[category] }"
                         @click="selectCategory(category)"
@@ -43,6 +48,7 @@
                         <p>{{ category }}</p>
                       </div>
                     </div>
+                    <span v-if="errors.category" class="error-message">{{ errors.category }}</span>
                   </div>
                 </div>
               </form>
@@ -102,6 +108,7 @@
                   <div v-else class="select-date-prompt">
                     Выберите срок исполнения.
                   </div>
+                  <span v-if="errors.date" class="error-message">{{ errors.date }}</span>
                 </div>
               </div>
             </div>
@@ -117,20 +124,20 @@
     </div>
   </div>
   <div v-if="showErrorModal" class="pop-error" @click.self="showErrorModal = false">
-  <div class="pop-error__container" @click.self="showErrorModal = false">
-    <div class="pop-error__block">
-      <div class="pop-error__ttl">
-        <h2>{{ errorTitle }}</h2>
-      </div>
-      <div class="pop-error__message">
-        <p>{{ errorMessage }}</p>
-      </div>
-      <div class="pop-error__form-group">
-        <button class="pop-error__ok-btn _hover01" @click="showErrorModal = false">OK</button>
+    <div class="pop-error__container" @click.self="showErrorModal = false">
+      <div class="pop-error__block">
+        <div class="pop-error__ttl">
+          <h2>{{ errorTitle }}</h2>
+        </div>
+        <div class="pop-error__message">
+          <p>{{ errorMessage }}</p>
+        </div>
+        <div class="pop-error__form-group">
+          <button class="pop-error__ok-btn _hover01" @click="showErrorModal = false">OK</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -140,22 +147,27 @@ export default {
   name: 'NewCardModal',
   emits: ['create-task', 'close'],
   setup(props, { emit }) {
-
     // Данные формы
     const taskTitle = ref('')
     const taskDescription = ref('')
     const selectedCategory = ref(null)
     const selectedDate = ref(null)
+    const errors = ref({
+      title: '',
+      description: '',
+      category: '',
+      date: ''
+    })
 
-const showErrorModal = ref(false)
-const errorTitle = ref('')
-const errorMessage = ref('')
+    const showErrorModal = ref(false)
+    const errorTitle = ref('')
+    const errorMessage = ref('')
 
-const showError = (title, message) => {
-  errorTitle.value = title
-  errorMessage.value = message
-  showErrorModal.value = true
-}
+    const showError = (title, message) => {
+      errorTitle.value = title
+      errorMessage.value = message
+      showErrorModal.value = true
+    }
 
     // Категории и цвета
     const categories = ref(['Web Design', 'Research', 'Copywriting', 'QA', 'Deployment'])
@@ -170,11 +182,13 @@ const showError = (title, message) => {
     // Выбор даты
     const selectDate = (date) => {
       selectedDate.value = date
+      errors.value.date = ''
     }
 
     // Выбор категории
     const selectCategory = (category) => {
       selectedCategory.value = category
+      errors.value.category = ''
     }
 
     // Навигация по месяцам
@@ -267,16 +281,43 @@ const showError = (title, message) => {
       return `${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year.toString().slice(-2)}`
     })
 
-    // Создание задачи
-    const createTask = () => {
-      // Валидация
+    // Валидация формы
+    const validateForm = () => {
+      let isValid = true
+      errors.value = {
+        title: '',
+        description: '',
+        category: '',
+        date: ''
+      }
+
       if (!taskTitle.value.trim()) {
-        showError('Ошибка', 'Название задачи не может быть пустым!')
-        return
+        errors.value.title = 'Введите название задачи'
+        isValid = false
+      }
+
+      if (!taskDescription.value.trim()) {
+        errors.value.description = 'Введите описание задачи'
+        isValid = false
       }
 
       if (!selectedCategory.value) {
-        showError('Ошибка', 'Выберите категорию задачи!')
+        errors.value.category = 'Выберите категорию'
+        isValid = false
+      }
+
+      if (!selectedDate.value) {
+        errors.value.date = 'Выберите дату выполнения'
+        isValid = false
+      }
+
+      return isValid
+    }
+
+    // Создание задачи
+    const createTask = () => {
+      // Валидация
+      if (!validateForm()) {
         return
       }
 
@@ -295,6 +336,13 @@ const showError = (title, message) => {
     // Закрытие модалки
     const closeModal = () => {
       emit('close')
+      resetForm()
+      errors.value = {
+        title: '',
+        description: '',
+        category: '',
+        date: ''
+      }
     }
 
     // Сброс формы
@@ -323,10 +371,11 @@ const showError = (title, message) => {
       calendarTitle,
       prevMonth,
       nextMonth,
-        showErrorModal,
-  errorTitle,
-  errorMessage,
-  showError
+      showErrorModal,
+      errorTitle,
+      errorMessage,
+      showError,
+      errors
     }
   }
 }
@@ -413,7 +462,7 @@ const showError = (title, message) => {
 .form-new__area {
   width: 100%;
   padding: 12px 15px;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
@@ -444,7 +493,7 @@ const showError = (title, message) => {
   flex-wrap: wrap;
   gap: 7px;
   margin-top: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 .categories__theme {
@@ -637,10 +686,12 @@ const showError = (title, message) => {
 .dark-theme .creation-title {
   color: #fff;
 }
+
 /* Кнопка создания */
 .button-container {
   display: flex;
   justify-content: flex-end;
+  margin-top: 20px;
 }
 
 .form-new__create {
@@ -744,6 +795,18 @@ const showError = (title, message) => {
 .pop-error__ok-btn:hover {
   background: #4549ca;
   transform: translateY(-2px);
+}
+
+/* Стили для ошибок */
+.error {
+  border-color: #ff5252 !important;
+}
+
+.error-message {
+  color: #ff5252;
+  font-size: 12px;
+  margin-bottom: 10px;
+  display: block;
 }
 
 /* Адаптация для мобильных */
