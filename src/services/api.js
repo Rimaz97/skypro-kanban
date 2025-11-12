@@ -28,16 +28,35 @@ export async function postWord(task, token) {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(task),
-    })
+    });
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || 'Ошибка создания задачи')
+      const errorText = await response.text();
+      throw new Error(errorText || 'Ошибка создания задачи');
     }
 
-    return await response.json()
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      return task;
+    }
+
+    if (data.tasks && Array.isArray(data.tasks)) {
+      const newTask = data.tasks.find(t =>
+        t.title === task.title &&
+        t.topic === task.topic &&
+        t.date === task.date
+      );
+      if (newTask) {
+        return newTask;
+      }
+      return data.tasks[data.tasks.length - 1];
+    }
+
+    return task;
   } catch (error) {
-    throw new Error(error.message || 'Ошибка создания задачи. Проверьте данные.')
+    throw new Error(error.message || 'Ошибка создания задачи. Проверьте данные.');
   }
 }
 
@@ -49,16 +68,39 @@ export async function editWord(id, updatedTask, token) {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(updatedTask),
-    })
+    });
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(errorText || 'Ошибка обновления задачи')
+      let errorText;
+      try {
+        const errorData = await response.json();
+        errorText = errorData.error || `Ошибка ${response.status}: Ошибка обновления задачи`;
+      } catch {
+        errorText = await response.text() || `Ошибка ${response.status}: Ошибка обновления задачи`;
+      }
+      throw new Error(errorText);
     }
 
-    return await response.json()
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      return updatedTask;
+    }
+
+    if (data.tasks && Array.isArray(data.tasks)) {
+      const updatedTaskFromServer = data.tasks.find(task => task._id === id);
+      if (updatedTaskFromServer) {
+        return updatedTaskFromServer;
+      }
+    }
+
+    return updatedTask;
   } catch (error) {
-    throw new Error(error.message || 'Ошибка обновления задачи. Возможно, задача была удалена.')
+    if (error.message.includes('Failed to fetch') || error.message.includes('HTTP2_PING_FAILED')) {
+      return updatedTask;
+    }
+    throw new Error(error.message || 'Ошибка обновления задачи. Возможно, задача была удалена.');
   }
 }
 

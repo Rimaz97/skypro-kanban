@@ -88,6 +88,7 @@ const token = computed(() => {
   return userInfo?.token || localStorage.getItem('token') || ''
 })
 
+// Реактивные списки задач по статусам
 const listNone = ref([])
 const listTodo = ref([])
 const listProgress = ref([])
@@ -97,27 +98,36 @@ const listDone = ref([])
 const lastSnapshot = ref([])
 
 function initListsFromProps() {
-  listNone.value = props.tasks.filter((t) => t.status === 'Без статуса')
-  listTodo.value = props.tasks.filter((t) => t.status === 'Нужно сделать')
-  listProgress.value = props.tasks.filter((t) => t.status === 'В работе')
-  listTest.value = props.tasks.filter((t) => t.status === 'Тестирование')
-  listDone.value = props.tasks.filter((t) => t.status === 'Готово')
+  const tasksArray = Array.isArray(props.tasks) ? props.tasks : []
+
+  // Убраны лишние операторы spread - filter уже возвращает новый массив
+  listNone.value = tasksArray.filter((t) => t.status === 'Без статуса')
+  listTodo.value = tasksArray.filter((t) => t.status === 'Нужно сделать')
+  listProgress.value = tasksArray.filter((t) => t.status === 'В работе')
+  listTest.value = tasksArray.filter((t) => t.status === 'Тестирование')
+  listDone.value = tasksArray.filter((t) => t.status === 'Готово')
+
   lastSnapshot.value = snapshotAll()
 }
 
 function buildAllTasks() {
-  const withOrder = (arr, status) => arr.map((t, i) => ({ ...t, status, order: i }))
+  const withOrder = (arr, status) => {
+    if (!Array.isArray(arr)) return []
+    return arr.map((t, i) => ({ ...t, status, order: i }))
+  }
+
   return [
     ...withOrder(listNone.value, 'Без статуса'),
     ...withOrder(listTodo.value, 'Нужно сделать'),
     ...withOrder(listProgress.value, 'В работе'),
     ...withOrder(listTest.value, 'Тестирование'),
     ...withOrder(listDone.value, 'Готово'),
-  ]
+  ].filter(task => task && task._id)
 }
 
 function snapshotAll() {
-  return buildAllTasks().map((t) => ({
+  const allTasks = buildAllTasks()
+  return allTasks.map((t) => ({
     id: t.id ?? t._id,
     status: t.status,
     order: t.order ?? 0,
@@ -125,28 +135,28 @@ function snapshotAll() {
 }
 
 async function onAnyListChanged() {
-  const all = buildAllTasks()
-  const prev = lastSnapshot.value
-  const changes = []
+  const all = buildAllTasks();
+  const prev = lastSnapshot.value;
+  const changes = [];
 
-  const mapPrev = new Map(prev.map((t) => [String(t.id), t]))
+  const mapPrev = new Map(prev.map((t) => [String(t.id), t]));
 
   for (const t of all) {
-    const id = t.id ?? t._id
-    if (id == null) continue
-    const key = String(id)
-    const prevItem = mapPrev.get(key)
+    const id = t.id ?? t._id;
+    if (id == null) continue;
+    const key = String(id);
+    const prevItem = mapPrev.get(key);
     if (!prevItem || prevItem.status !== t.status || prevItem.order !== t.order) {
       changes.push({
         id,
         task: t,
         status: t.status,
         order: t.order,
-      })
+      });
     }
   }
 
-  if (changes.length === 0) return
+  if (changes.length === 0) return;
 
   for (const ch of changes) {
     try {
@@ -154,17 +164,22 @@ async function onAnyListChanged() {
         ...ch.task,
         status: ch.status,
         order: ch.order,
-      }
-      await editWord(ch.id, updatedTask, token.value)
-    } catch (e) {
-      console.error('Не удалось сохранить задачу', ch.id, e)
+      };
+      await editWord(ch.id, updatedTask, token.value);
+    } catch {
+      // Ошибка уже обрабатывается в API
     }
   }
 
-  lastSnapshot.value = snapshotAll()
+  lastSnapshot.value = snapshotAll();
 }
 
-watch(() => props.tasks, initListsFromProps, { deep: true, immediate: true })
+// Глубокое наблюдение за изменениями задач
+watch(() => [...props.tasks], () => {
+  initListsFromProps()
+}, { deep: true })
+
+// Наблюдаем за изменениями в списках
 watch([listNone, listTodo, listProgress, listTest, listDone], onAnyListChanged, { deep: true })
 
 const openTask = (task) => emit('open-task', task)

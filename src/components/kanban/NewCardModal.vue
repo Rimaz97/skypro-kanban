@@ -1,4 +1,5 @@
 <template>
+  <!-- Ваш существующий template остается без изменений -->
   <div class="pop-new-card" @click.self="closeModal">
     <div class="pop-new-card__container" @click.self="closeModal">
       <div class="pop-new-card__block">
@@ -123,265 +124,212 @@
       </div>
     </div>
   </div>
-  <div v-if="showErrorModal" class="pop-error" @click.self="showErrorModal = false">
-    <div class="pop-error__container" @click.self="showErrorModal = false">
-      <div class="pop-error__block">
-        <div class="pop-error__ttl">
-          <h2>{{ errorTitle }}</h2>
-        </div>
-        <div class="pop-error__message">
-          <p>{{ errorMessage }}</p>
-        </div>
-        <div class="pop-error__form-group">
-          <button class="pop-error__ok-btn _hover01" @click="showErrorModal = false">OK</button>
-        </div>
-      </div>
-    </div>
-  </div>
 </template>
 
-<script>
+<script setup>
 import { ref, computed } from 'vue'
 
-export default {
-  name: 'NewCardModal',
-  emits: ['create-task', 'close'],
-  setup(props, { emit }) {
-    // Данные формы
-    const taskTitle = ref('')
-    const taskDescription = ref('')
-    const selectedCategory = ref(null)
-    const selectedDate = ref(null)
-    const errors = ref({
-      title: '',
-      description: '',
-      category: '',
-      date: ''
-    })
+// Объявляем события
+const emit = defineEmits(['create-task', 'close'])
 
-    const showErrorModal = ref(false)
-    const errorTitle = ref('')
-    const errorMessage = ref('')
+// Данные формы
+const taskTitle = ref('')
+const taskDescription = ref('')
+const selectedCategory = ref(null)
+const selectedDate = ref(null)
+const errors = ref({
+  title: '',
+  description: '',
+  category: '',
+  date: ''
+})
 
-    const showError = (title, message) => {
-      errorTitle.value = title
-      errorMessage.value = message
-      showErrorModal.value = true
-    }
+// Категории и цвета
+const categories = ref(['Web Design', 'Research', 'Copywriting', 'QA', 'Deployment'])
+const categoryColors = ref({
+  'Web Design': '#FFE4C2',
+  Research: '#B4FDD1',
+  Copywriting: '#E9D4FF',
+  QA: '#B4FDD1',
+  Deployment: '#bae1ff',
+})
 
-    // Категории и цвета
-    const categories = ref(['Web Design', 'Research', 'Copywriting', 'QA', 'Deployment'])
-    const categoryColors = ref({
-      'Web Design': '#FFE4C2',
-      Research: '#B4FDD1',
-      Copywriting: '#E9D4FF',
-      QA: '#B4FDD1',
-      Deployment: '#bae1ff',
-    })
+// Выбор даты
+const selectDate = (date) => {
+  selectedDate.value = date
+  errors.value.date = ''
+}
 
-    // Выбор даты
-    const selectDate = (date) => {
-      selectedDate.value = date
-      errors.value.date = ''
-    }
+// Выбор категории
+const selectCategory = (category) => {
+  selectedCategory.value = category
+  errors.value.category = ''
+}
 
-    // Выбор категории
-    const selectCategory = (category) => {
-      selectedCategory.value = category
-      errors.value.category = ''
-    }
+// Навигация по месяцам
+const currentMonth = ref(new Date().getMonth())
+const currentYear = ref(new Date().getFullYear())
 
-    // Навигация по месяцам
-    const currentMonth = ref(new Date().getMonth())
-    const currentYear = ref(new Date().getFullYear())
+// Дни недели
+const weekdays = ref(['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'])
 
-    // Дни недели
-    const weekdays = ref(['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'])
+// Заголовок календаря
+const calendarTitle = computed(() => {
+  const months = [
+    'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+  ]
+  return months[currentMonth.value]
+})
 
-    // Заголовок календаря
-    const calendarTitle = computed(() => {
-      const months = [
-        'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
-      ]
-      return months[currentMonth.value]
-    })
-
-    // Навигация по месяцам
-    const prevMonth = () => {
-      if (currentMonth.value === 0) {
-        currentMonth.value = 11
-        currentYear.value--
-      } else {
-        currentMonth.value--
-      }
-    }
-
-    const nextMonth = () => {
-      if (currentMonth.value === 11) {
-        currentMonth.value = 0
-        currentYear.value++
-      } else {
-        currentMonth.value++
-      }
-    }
-
-    // Генерация календаря
-    const calendarDays = computed(() => {
-      const days = []
-      const year = currentYear.value
-      const month = currentMonth.value
-
-      // Первый день месяца
-      const firstDay = new Date(year, month, 1)
-      // Последний день месяца
-      const lastDay = new Date(year, month + 1, 0)
-
-      // День недели для первого дня (0 - воскресенье, 1 - понедельник и т.д.)
-      let firstDayOfWeek = firstDay.getDay()
-      // Корректировка: если воскресенье, то это 0, но нам нужно чтобы было 7
-      if (firstDayOfWeek === 0) firstDayOfWeek = 7
-
-      // Пустые ячейки для дней предыдущего месяца
-      for (let i = 1; i < firstDayOfWeek; i++) {
-        days.push({ day: '', date: null, isToday: false, isCurrentMonth: false })
-      }
-
-      // Дни текущего месяца
-      for (let day = 1; day <= lastDay.getDate(); day++) {
-        // Форматирование даты без смещения часового пояса
-        const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
-
-        // Определение, является ли день сегодняшним
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const dateForComparison = new Date(year, month, day)
-        dateForComparison.setHours(0, 0, 0, 0)
-        const isToday = dateForComparison.getTime() === today.getTime()
-
-        days.push({
-          date: dateString,
-          day: day,
-          isToday: isToday,
-          isCurrentMonth: true
-        })
-      }
-
-      return days
-    })
-
-    // Формат даты (дд.мм.гг)
-    const formattedDateShort = computed(() => {
-      if (!selectedDate.value) return ''
-
-      // Разбираем дату из строки формата YYYY-MM-DD
-      const [year, month, day] = selectedDate.value.split('-').map(Number)
-
-      // Форматируем без использования Date
-      return `${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year.toString().slice(-2)}`
-    })
-
-    // Валидация формы
-    const validateForm = () => {
-      let isValid = true
-      errors.value = {
-        title: '',
-        description: '',
-        category: '',
-        date: ''
-      }
-
-      if (!taskTitle.value.trim()) {
-        errors.value.title = 'Введите название задачи'
-        isValid = false
-      }
-
-      if (!taskDescription.value.trim()) {
-        errors.value.description = 'Введите описание задачи'
-        isValid = false
-      }
-
-      if (!selectedCategory.value) {
-        errors.value.category = 'Выберите категорию'
-        isValid = false
-      }
-
-      if (!selectedDate.value) {
-        errors.value.date = 'Выберите дату выполнения'
-        isValid = false
-      }
-
-      return isValid
-    }
-
-    // Создание задачи
-    const createTask = () => {
-      // Валидация
-      if (!validateForm()) {
-        return
-      }
-
-      const newTask = {
-        topic: selectedCategory.value,
-        title: taskTitle.value.trim(),
-        description: taskDescription.value,
-        date: selectedDate.value,
-        status: 'Без статуса',
-      }
-
-      emit('create-task', newTask)
-      resetForm()
-    }
-
-    // Закрытие модалки
-    const closeModal = () => {
-      emit('close')
-      resetForm()
-      errors.value = {
-        title: '',
-        description: '',
-        category: '',
-        date: ''
-      }
-    }
-
-    // Сброс формы
-    const resetForm = () => {
-      taskTitle.value = ''
-      taskDescription.value = ''
-      selectedCategory.value = null
-      selectedDate.value = null
-    }
-
-    return {
-      taskTitle,
-      taskDescription,
-      selectedCategory,
-      selectedDate,
-      categories,
-      categoryColors,
-      calendarDays,
-      formattedDateShort,
-      selectCategory,
-      selectDate,
-      createTask,
-      closeModal,
-      resetForm,
-      weekdays,
-      calendarTitle,
-      prevMonth,
-      nextMonth,
-      showErrorModal,
-      errorTitle,
-      errorMessage,
-      showError,
-      errors
-    }
+// Навигация по месяцам
+const prevMonth = () => {
+  if (currentMonth.value === 0) {
+    currentMonth.value = 11
+    currentYear.value--
+  } else {
+    currentMonth.value--
   }
+}
+
+const nextMonth = () => {
+  if (currentMonth.value === 11) {
+    currentMonth.value = 0
+    currentYear.value++
+  } else {
+    currentMonth.value++
+  }
+}
+
+// Генерация календаря
+const calendarDays = computed(() => {
+  const days = []
+  const year = currentYear.value
+  const month = currentMonth.value
+
+  // Первый день месяца
+  const firstDay = new Date(year, month, 1)
+  // Последний день месяца
+  const lastDay = new Date(year, month + 1, 0)
+
+  // День недели для первого дня (0 - воскресенье, 1 - понедельник и т.д.)
+  let firstDayOfWeek = firstDay.getDay()
+  // Корректировка: если воскресенье, то это 0, но нам нужно чтобы было 7
+  if (firstDayOfWeek === 0) firstDayOfWeek = 7
+
+  // Пустые ячейки для дней предыдущего месяца
+  for (let i = 1; i < firstDayOfWeek; i++) {
+    days.push({ day: '', date: null, isToday: false, isCurrentMonth: false })
+  }
+
+  // Дни текущего месяца
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    // Форматирование даты без смещения часового пояса
+    const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+
+    // Определение, является ли день сегодняшним
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const dateForComparison = new Date(year, month, day)
+    dateForComparison.setHours(0, 0, 0, 0)
+    const isToday = dateForComparison.getTime() === today.getTime()
+
+    days.push({
+      date: dateString,
+      day: day,
+      isToday: isToday,
+      isCurrentMonth: true
+    })
+  }
+
+  return days
+})
+
+// Формат даты (дд.мм.гг)
+const formattedDateShort = computed(() => {
+  if (!selectedDate.value) return ''
+
+  // Разбираем дату из строки формата YYYY-MM-DD
+  const [year, month, day] = selectedDate.value.split('-').map(Number)
+
+  // Форматируем без использования Date
+  return `${day.toString().padStart(2, '0')}.${month.toString().padStart(2, '0')}.${year.toString().slice(-2)}`
+})
+
+// Валидация формы
+const validateForm = () => {
+  let isValid = true
+  errors.value = {
+    title: '',
+    description: '',
+    category: '',
+    date: ''
+  }
+
+  if (!taskTitle.value.trim()) {
+    errors.value.title = 'Введите название задачи'
+    isValid = false
+  }
+
+  if (!taskDescription.value.trim()) {
+    errors.value.description = 'Введите описание задачи'
+    isValid = false
+  }
+
+  if (!selectedCategory.value) {
+    errors.value.category = 'Выберите категорию'
+    isValid = false
+  }
+
+  if (!selectedDate.value) {
+    errors.value.date = 'Выберите дату выполнения'
+    isValid = false
+  }
+
+  return isValid
+}
+
+// Создание задачи
+const createTask = () => {
+  if (!validateForm()) {
+    return;
+  }
+
+  const newTask = {
+    topic: selectedCategory.value,
+    title: taskTitle.value.trim(),
+    description: taskDescription.value,
+    date: selectedDate.value,
+    status: 'Без статуса',
+  };
+
+  emit('create-task', newTask);
+  resetForm();
+}
+
+// Закрытие модалки
+const closeModal = () => {
+  emit('close')
+  resetForm()
+  errors.value = {
+    title: '',
+    description: '',
+    category: '',
+    date: ''
+  }
+}
+
+// Сброс формы
+const resetForm = () => {
+  taskTitle.value = ''
+  taskDescription.value = ''
+  selectedCategory.value = null
+  selectedDate.value = null
 }
 </script>
 
 <style scoped>
+/* Ваши существующие стили остаются без изменений */
 .pop-new-card {
   position: fixed;
   top: 0;

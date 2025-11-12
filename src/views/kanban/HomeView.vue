@@ -14,7 +14,12 @@
 
     <ExitModal v-if="showExitModal" @confirm-exit="handleExit" @cancel-exit="closeAllModals" />
 
-    <NewCardModal v-if="showNewCardModal" @create-task="createTask" @close="closeAllModals" />
+    <NewCardModal
+      v-if="showNewCardModal"
+      @create-task="createTask"
+      @close="closeAllModals"
+    />
+
     <TaskModal
       v-if="showTaskModal"
       :task="selectedTask"
@@ -74,7 +79,7 @@ const loadTasks = async () => {
     loading.value = true
     error.value = ''
     const data = await fetchWords(user.value.token)
-    tasks.value = Array.isArray(data) ? data : []
+    tasks.value = Array.isArray(data) ? [...data] : []
   } catch (err) {
     error.value = err.message
     tasks.value = []
@@ -97,32 +102,39 @@ watch(user, (val) => {
 
 const createTask = async (task) => {
   try {
-    // Отправляем задачу на сервер
-    await postWord(task, user.value.token);
+    if (!task.title || !task.topic || !task.date) {
+      return;
+    }
 
-    // Закрываем модальное окно создания задачи
+    const newTask = await postWord(task, user.value.token);
+    tasks.value = [newTask, ...tasks.value];
     closeAllModals();
-
-    // Обновляем страницу после небольшой задержки
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
   } catch (err) {
-    console.error('Ошибка при создании задачи:', err);
     error.value = err.message;
   }
 }
 
 const updateTask = async (updated) => {
   try {
-    await editWord(updated._id, updated, user.value.token)
-    closeAllModals()
-    setTimeout(() => {
-      window.location.reload()
-    }, 100)
+    const updatedTask = await editWord(updated._id, updated, user.value.token);
+    const taskIndex = tasks.value.findIndex(task => task._id === updated._id);
+    if (taskIndex !== -1) {
+      tasks.value = [
+        ...tasks.value.slice(0, taskIndex),
+        { ...updatedTask },
+        ...tasks.value.slice(taskIndex + 1)
+      ];
+    } else {
+      tasks.value = [updatedTask, ...tasks.value];
+    }
+
+    if (selectedTask.value && selectedTask.value._id === updated._id) {
+      selectedTask.value = { ...updatedTask };
+    }
+
+    closeAllModals();
   } catch (err) {
-    console.error('Ошибка при обновлении задачи:', err)
-    error.value = err.message
+    error.value = err.message;
   }
 }
 
@@ -130,6 +142,11 @@ const deleteTask = async (id) => {
   try {
     await deleteWord(id, user.value.token)
     tasks.value = tasks.value.filter((task) => task._id !== id)
+
+    if (selectedTask.value && selectedTask.value._id === id) {
+      selectedTask.value = null
+    }
+
     closeAllModals()
   } catch (err) {
     error.value = err.message
