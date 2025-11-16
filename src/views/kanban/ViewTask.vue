@@ -6,20 +6,24 @@
 </template>
 
 <script>
-import TaskModal from '@/components/kanban/TaskModal.vue';
-import { ref } from 'vue';
+import TaskModal from '@/components/kanban/TaskModal.vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'ViewTask',
   components: { TaskModal },
   setup() {
-    const task = ref({ /* Данные задачи */ });
+    const router = useRouter()
+    const task = ref({
+      /* Данные задачи */
+    })
 
     const closeModal = () => {
-      // Закрытие модального окна
+      router.push('/') // Закрыть модалку, вернувшись на главную
     }
 
-    return { task, closeModal };
-  }
+    return { task, closeModal }
+  },
 }
 </script>

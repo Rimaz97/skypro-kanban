@@ -6,38 +6,21 @@
           <div class="modal__ttl"><h2>Регистрация</h2></div>
           <form class="modal__form-login" @submit.prevent="handleSignUp">
             <!-- Используем BaseInput с v-model -->
-            <BaseInput
-              v-model="form.name"
-              placeholder="Имя"
-              required
-            />
+            <BaseInput v-model="form.name" placeholder="Имя" required />
 
-            <BaseInput
-              v-model="form.login"
-              type="email"
-              placeholder="Эл. почта"
-              required
-            />
+            <BaseInput v-model="form.login" type="email" placeholder="Эл. почта" required />
 
-            <BaseInput
-              v-model="form.password"
-              type="password"
-              placeholder="Пароль"
-              required
-            />
+            <BaseInput v-model="form.password" type="password" placeholder="Пароль" required />
 
             <p v-if="error" class="error-message">{{ error }}</p>
 
-            <button
-              class="modal__btn-signup-ent _hover01"
-              type="submit"
-              :disabled="loading"
-            >
+            <button class="modal__btn-signup-ent _hover01" type="submit" :disabled="loading">
               {{ loading ? 'Загрузка...' : 'Зарегистрироваться' }}
             </button>
 
             <div class="modal__form-group">
-              <p>Уже есть аккаунт?
+              <p>
+                Уже есть аккаунт?
                 <router-link to="/login">Войдите здесь</router-link>
               </p>
             </div>
@@ -60,8 +43,8 @@ const { setUser } = inject('auth')
 const form = ref({
   name: '',
   login: '',
-  password: ''
-});
+  password: '',
+})
 
 const error = ref('')
 const loading = ref(false)
@@ -75,16 +58,16 @@ async function handleSignUp() {
     const { token, user } = await signUp({
       name: form.value.name,
       login: form.value.login,
-      password: form.value.password
-    });
+      password: form.value.password,
+    })
 
     setUser({ token, user }) // сохраняем пользователя глобально
 
     router.push('/login') // обычно сразу на главную, но если нужно — на
   } catch (err) {
-    error.value = err.message;
+    error.value = err.message
   } finally {
-    loading.value = false;
+    loading.value = false
   }
 }
 </script>

@@ -358,7 +358,6 @@ body {
   max-width: 370px;
   width: 100%;
   display: block;
-
 }
 
 .form-new__block {
@@ -472,7 +471,6 @@ body {
   flex-wrap: wrap;
 }
 .calendar__cell {
-
   height: 22px;
   margin: 2px;
   border-radius: 50%;
@@ -797,7 +795,6 @@ body {
   padding: 0;
 }
 .header__pop-user-set {
-
   position: absolute;
   top: 61px;
   right: 0;

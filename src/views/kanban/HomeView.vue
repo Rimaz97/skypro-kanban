@@ -14,7 +14,11 @@
 
     <ExitModal v-if="showExitModal" @confirm-exit="handleExit" @cancel-exit="closeAllModals" />
 
-    <NewCardModal v-if="showNewCardModal" @create-task="createTask" @close="closeAllModals" />
+    <NewCardModal
+      v-if="showNewCardModal"
+      @create-task="createTask"
+      @close="closeAllModals"
+    />
 
     <TaskModal
       v-if="showTaskModal"
@@ -33,6 +37,13 @@
       @delete-task="deleteTask"
       @close="closeAllModals"
     />
+
+    <NotificationModal
+      v-if="showNotificationModal"
+      :title="notificationTitle"
+      :message="notificationMessage"
+      @close="hideNotification"
+    />
   </div>
 </template>
 
@@ -44,6 +55,7 @@ import ExitModal from '@/components/kanban/ExitModal.vue'
 import NewCardModal from '@/components/kanban/NewCardModal.vue'
 import TaskModal from '@/components/kanban/TaskModal.vue'
 import EditTaskModal from '@/components/kanban/EditTaskModal.vue'
+import NotificationModal from '@/components/ui/NotificationModal.vue'
 import { fetchWords, postWord, editWord, deleteWord } from '@/services/api'
 
 const { user, removeUser } = inject('auth')
@@ -67,7 +79,7 @@ const loadTasks = async () => {
     loading.value = true
     error.value = ''
     const data = await fetchWords(user.value.token)
-    tasks.value = Array.isArray(data) ? data : []
+    tasks.value = Array.isArray(data) ? [...data] : []
   } catch (err) {
     error.value = err.message
     tasks.value = []
@@ -90,28 +102,51 @@ watch(user, (val) => {
 
 const createTask = async (task) => {
   try {
-    await postWord(task, user.value.token)
-    await loadTasks()
-    closeAllModals()
+    if (!task.title || !task.topic || !task.date) {
+      return;
+    }
+
+    const newTask = await postWord(task, user.value.token);
+    tasks.value = [newTask, ...tasks.value];
+    closeAllModals();
   } catch (err) {
-    error.value = err.message
+    error.value = err.message;
   }
 }
 
 const updateTask = async (updated) => {
   try {
-    await editWord(updated._id, updated, user.value.token)
-    await loadTasks()
-    closeAllModals()
+    const updatedTask = await editWord(updated._id, updated, user.value.token);
+    const taskIndex = tasks.value.findIndex(task => task._id === updated._id);
+    if (taskIndex !== -1) {
+      tasks.value = [
+        ...tasks.value.slice(0, taskIndex),
+        { ...updatedTask },
+        ...tasks.value.slice(taskIndex + 1)
+      ];
+    } else {
+      tasks.value = [updatedTask, ...tasks.value];
+    }
+
+    if (selectedTask.value && selectedTask.value._id === updated._id) {
+      selectedTask.value = { ...updatedTask };
+    }
+
+    closeAllModals();
   } catch (err) {
-    error.value = err.message
+    error.value = err.message;
   }
 }
 
 const deleteTask = async (id) => {
   try {
     await deleteWord(id, user.value.token)
-    await loadTasks()
+    tasks.value = tasks.value.filter((task) => task._id !== id)
+
+    if (selectedTask.value && selectedTask.value._id === id) {
+      selectedTask.value = null
+    }
+
     closeAllModals()
   } catch (err) {
     error.value = err.message
@@ -120,19 +155,36 @@ const deleteTask = async (id) => {
 
 const showExitModal = computed(() => route.path === '/exit')
 const showNewCardModal = computed(() => route.path === '/add-task')
-const showTaskModal = computed(() => route.path.startsWith('/card/'))
-const showEditTaskModal = computed(() => route.path.startsWith('/edit-task/'))
+const showTaskModal = computed(() => route.path.startsWith('/card/') && selectedTask.value !== null)
+const showEditTaskModal = computed(
+  () => route.path.startsWith('/edit-task/') && selectedTask.value !== null && selectedTask.value,
+)
 
 const showOverlay = computed(
   () =>
     showExitModal.value || showNewCardModal.value || showTaskModal.value || showEditTaskModal.value,
 )
 
+const showNotificationModal = ref(false)
+const notificationTitle = ref('')
+const notificationMessage = ref('')
+
+const hideNotification = () => {
+  showNotificationModal.value = false
+}
+
 watch(
   [() => route.params.id, tasks],
   ([newId, newTasks]) => {
     if (newId && newTasks.length > 0) {
-      selectedTask.value = newTasks.find((t) => String(t.id) === String(newId)) || null
+      selectedTask.value = newTasks.find((t) => String(t._id) === String(newId)) || null
+
+      if (
+        !selectedTask.value &&
+        (route.path.startsWith('/card/') || route.path.startsWith('/edit-task/'))
+      ) {
+        router.push('/')
+      }
     }
   },
   { immediate: true },
@@ -141,13 +193,15 @@ watch(
 function goToAddTask() {
   router.push('/add-task')
 }
+
 function goToViewTask(task) {
   selectedTask.value = task
-  router.push(`/card/${task.id}`)
+  router.push(`/card/${task._id}`)
 }
+
 function goToEditTask(task) {
   selectedTask.value = task
-  router.push(`/edit-task/${task.id}`)
+  router.push(`/edit-task/${task._id}`)
 }
 
 function closeAllModals() {

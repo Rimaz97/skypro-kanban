@@ -34,11 +34,8 @@
             <div class="user-container" @click.prevent="toggleUserPopup">
               <span class="header__user _hover02"> {{ userName }} </span>
             </div>
-            <div
-              class="header__pop-user-set pop-user-set"
-              v-show="showUserPopup"
-              @click.stop
-            >
+            <div class="popup-overlay" v-show="showUserPopup" @click="closePopup"></div>
+            <div class="header__pop-user-set pop-user-set" v-show="showUserPopup" @click.stop>
               <p class="pop-user-set__name">{{ userName }}</p>
               <p class="pop-user-set__mail">{{ userEmail }}</p>
               <div class="pop-user-set__theme">
@@ -71,7 +68,8 @@
 import { inject, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-const { user } = inject('auth')
+const auth = inject('auth', { user: ref(null) })
+const user = auth.user
 const router = useRouter()
 
 const showUserPopup = ref(false)
@@ -86,7 +84,12 @@ const toggleUserPopup = () => {
   showUserPopup.value = !showUserPopup.value
 }
 
+const closePopup = () => {
+  showUserPopup.value = false
+}
+
 const handleExit = () => {
+  closePopup() // Закрываем попап перед переходом
   router.push('/exit')
 }
 
@@ -198,6 +201,17 @@ const openNewCard = () => {
   background: #4549ca;
 }
 
+/* Оверлей для закрытия попапа */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  z-index: 999;
+}
+
 .header__pop-user-set {
   position: absolute;
   top: 100%;
@@ -209,11 +223,14 @@ const openNewCard = () => {
   background: white;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  transition: box-shadow 0.2s ease;
 }
 
 .dark-theme .header__pop-user-set {
   background: #20202c;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 4px 20px rgba(255, 255, 255, 0.15),
+    0 4px 10px rgba(255, 255, 255, 0.1);
 }
 
 .pop-user-set__name {

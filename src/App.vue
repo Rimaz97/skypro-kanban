@@ -1,6 +1,5 @@
 <template>
   <div :class="{ 'dark-theme': isDark }">
-    <BaseHeader />
     <router-view />
   </div>
 </template>

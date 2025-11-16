@@ -8,6 +8,7 @@ import NewCardModal   from '@/components/kanban/NewCardModal.vue'
 import TaskModal    from '@/components/kanban/TaskModal.vue'
 import EditTaskModal  from '@/components/kanban/EditTaskModal.vue'
 import ExitModal    from '@/components/kanban/ExitModal.vue'
+import NotificationModal from '@/components/ui/NotificationModal.vue' // Добавляем импорт
 import NotFound    from '@/views/kanban/NotFound.vue'
 
 import AppLayout from '@/layout/AppLayout.vue'
@@ -46,6 +47,18 @@ const routes = [
             name: 'exit',
             components: { modal: ExitModal },
             meta: { requiresAuth: true }
+          },
+          // Добавляем маршрут для уведомлений
+          {
+            path: 'notification',
+            name: 'notification',
+            components: { modal: NotificationModal },
+            meta: { requiresAuth: true },
+            props: (route) => ({
+              title: route.query.title || 'Уведомление',
+              message: route.query.message || '',
+              isVisible: true
+            })
           }
         ]
       },
