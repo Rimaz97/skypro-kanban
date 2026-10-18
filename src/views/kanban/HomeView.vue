@@ -14,11 +14,7 @@
 
     <ExitModal v-if="showExitModal" @confirm-exit="handleExit" @cancel-exit="closeAllModals" />
 
-    <NewCardModal
-      v-if="showNewCardModal"
-      @create-task="createTask"
-      @close="closeAllModals"
-    />
+    <NewCardModal v-if="showNewCardModal" @create-task="createTask" @close="closeAllModals" />
 
     <TaskModal
       v-if="showTaskModal"
@@ -48,7 +44,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, provide, inject } from 'vue'
+import { ref, computed, watch, provide, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import TaskDesk from '@/components/kanban/TaskDesk.vue'
 import ExitModal from '@/components/kanban/ExitModal.vue'
@@ -58,7 +54,7 @@ import EditTaskModal from '@/components/kanban/EditTaskModal.vue'
 import NotificationModal from '@/components/ui/NotificationModal.vue'
 import { fetchWords, postWord, editWord, deleteWord } from '@/services/api'
 
-const { user, removeUser } = inject('auth')
+const { user, removeUser, isAuthReady } = inject('auth')
 const route = useRoute()
 const router = useRouter()
 const tasks = ref([])
@@ -70,15 +66,14 @@ provide('tasksData', { tasks, loading, error })
 
 const isDark = inject('isDark')
 
-const isAuthenticated = computed(() => !!user.value?.token)
-
 const loadTasks = async () => {
-  if (!isAuthenticated.value) return
+  if (!user.value?.id) return // Если uid ещё нет, не грузим
 
   try {
     loading.value = true
     error.value = ''
-    const data = await fetchWords(user.value.token)
+    // Передаём user.value.id в функцию
+    const data = await fetchWords(user.value.id)
     tasks.value = Array.isArray(data) ? [...data] : []
   } catch (err) {
     error.value = err.message
@@ -88,59 +83,66 @@ const loadTasks = async () => {
   }
 }
 
-onMounted(() => {
-  if (!isAuthenticated.value) {
-    router.push('/login')
-  } else {
-    loadTasks()
-  }
-})
+// Реагируем и на user, и на isAuthReady — ждём ответа Firebase
+watch(
+  [user, isAuthReady],
+  ([u, ready]) => {
+    if (!ready) return // Firebase ещё не ответил — ждём
 
-watch(user, (val) => {
-  if (val?.token) loadTasks()
-})
+    if (u) {
+      loadTasks()
+    } else {
+      tasks.value = []
+      if (!['/login', '/register'].includes(route.path)) {
+        router.push('/login')
+      }
+    }
+  },
+  { immediate: true },
+)
 
 const createTask = async (task) => {
   try {
-    if (!task.title || !task.topic || !task.date) {
-      return;
-    }
+    if (!task.title || !task.topic || !task.date) return
 
-    const newTask = await postWord(task, user.value.token);
-    tasks.value = [newTask, ...tasks.value];
-    closeAllModals();
+    // Передаём user.value.id
+    const newTask = await postWord(task, user.value.id)
+    tasks.value = [newTask, ...tasks.value]
+    closeAllModals()
   } catch (err) {
-    error.value = err.message;
+    error.value = err.message
   }
 }
 
 const updateTask = async (updated) => {
   try {
-    const updatedTask = await editWord(updated._id, updated, user.value.token);
-    const taskIndex = tasks.value.findIndex(task => task._id === updated._id);
+    // Передаём user.value.id
+    const updatedTask = await editWord(updated._id, updated, user.value.id)
+    const taskIndex = tasks.value.findIndex((task) => task._id === updated._id)
     if (taskIndex !== -1) {
       tasks.value = [
         ...tasks.value.slice(0, taskIndex),
         { ...updatedTask },
-        ...tasks.value.slice(taskIndex + 1)
-      ];
+        ...tasks.value.slice(taskIndex + 1),
+      ]
     } else {
-      tasks.value = [updatedTask, ...tasks.value];
+      tasks.value = [updatedTask, ...tasks.value]
     }
 
     if (selectedTask.value && selectedTask.value._id === updated._id) {
-      selectedTask.value = { ...updatedTask };
+      selectedTask.value = { ...updatedTask }
     }
 
-    closeAllModals();
+    closeAllModals()
   } catch (err) {
-    error.value = err.message;
+    error.value = err.message
   }
 }
 
 const deleteTask = async (id) => {
   try {
-    await deleteWord(id, user.value.token)
+    // Передаём user.value.id
+    await deleteWord(id, user.value.id)
     tasks.value = tasks.value.filter((task) => task._id !== id)
 
     if (selectedTask.value && selectedTask.value._id === id) {
@@ -209,6 +211,7 @@ function closeAllModals() {
 }
 
 function handleExit() {
+  // removeUser из AppLayout.vue вызывает signOut(auth) и обнуляет userInfo
   removeUser()
   router.push('/login')
 }

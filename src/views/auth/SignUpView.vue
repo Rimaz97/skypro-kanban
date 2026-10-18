@@ -6,11 +6,31 @@
           <div class="modal__ttl"><h2>Регистрация</h2></div>
           <form class="modal__form-login" @submit.prevent="handleSignUp">
             <!-- Используем BaseInput с v-model -->
-            <BaseInput v-model="form.name" placeholder="Имя" required />
+            <BaseInput
+              id="signup-name"
+              name="name"
+              v-model="form.name"
+              placeholder="Имя"
+              required
+            />
 
-            <BaseInput v-model="form.login" type="email" placeholder="Эл. почта" required />
+            <BaseInput
+              id="signup-email"
+              name="email"
+              v-model="form.login"
+              type="email"
+              placeholder="Эл. почта"
+              required
+            />
 
-            <BaseInput v-model="form.password" type="password" placeholder="Пароль" required />
+            <BaseInput
+              id="signup-password"
+              name="password"
+              v-model="form.password"
+              type="password"
+              placeholder="Пароль"
+              required
+            />
 
             <p v-if="error" class="error-message">{{ error }}</p>
 
@@ -54,16 +74,15 @@ async function handleSignUp() {
   error.value = ''
   loading.value = true
   try {
-    // Получаем данные пользователя и токен с сервера
-    const { token, user } = await signUp({
+    const { user } = await signUp({
       name: form.value.name,
       login: form.value.login,
       password: form.value.password,
     })
 
-    setUser({ token, user }) // сохраняем пользователя глобально
+    setUser({ user })
 
-    router.push('/login') // обычно сразу на главную, но если нужно — на
+    router.push('/')
   } catch (err) {
     error.value = err.message
   } finally {

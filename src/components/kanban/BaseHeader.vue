@@ -77,8 +77,8 @@ const isDark = inject('isDark')
 const toggleTheme = inject('toggleTheme')
 
 // Имя и email пользователя — computed, чтобы всегда были актуальны
-const userName = computed(() => user.value?.user?.name || 'Пользователь')
-const userEmail = computed(() => user.value?.user?.login || 'email@example.com')
+const userName = computed(() => user.value?.name || 'Пользователь')
+const userEmail = computed(() => user.value?.email || 'email@example.com')
 
 const toggleUserPopup = () => {
   showUserPopup.value = !showUserPopup.value

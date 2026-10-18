@@ -5,9 +5,23 @@
         <div class="modal__block">
           <div class="modal__ttl"><h2>Вход</h2></div>
           <form class="modal__form-login" @submit.prevent="handleLogin">
-            <BaseInput v-model="form.login" type="email" placeholder="Эл. почта" required />
+            <BaseInput
+              id="signin-email"
+              name="email"
+              v-model="form.login"
+              type="email"
+              placeholder="Эл. почта"
+              required
+            />
 
-            <BaseInput v-model="form.password" type="password" placeholder="Пароль" required />
+            <BaseInput
+              id="signin-password"
+              name="password"
+              v-model="form.password"
+              type="password"
+              placeholder="Пароль"
+              required
+            />
 
             <p v-if="error" class="error-message">{{ error }}</p>
 
@@ -50,12 +64,12 @@ async function handleLogin() {
   error.value = ''
   loading.value = true
   try {
-    const { token, user } = await signIn({
+    const { user } = await signIn({
       login: form.value.login,
       password: form.value.password,
     })
 
-    setUser({ token, user })
+    setUser({ user })
     router.push('/')
   } catch (err) {
     error.value = err.message

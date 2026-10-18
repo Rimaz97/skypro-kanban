@@ -1,125 +1,52 @@
-const API_URL = 'https://wedev-api.sky.pro/api/kanban'
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'
+import { db } from '@/firebase'
 
-export async function fetchWords(token) {
+// Принимаем uid как аргумент
+function tasksRef(uid) {
+  if (!uid) throw new Error('Пользователь не авторизован')
+  return collection(db, 'users', uid, 'tasks')
+}
+
+export async function fetchWords(uid) {
   try {
-    const response = await fetch(API_URL, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.error || 'Ошибка загрузки задач')
-    }
-
-    const data = await response.json()
-    return Array.isArray(data) ? data : data.tasks || []
+    const snapshot = await getDocs(tasksRef(uid))
+    return snapshot.docs.map((d) => ({ _id: d.id, ...d.data() }))
   } catch (error) {
-    throw new Error(error.message || 'Ошибка загрузки задач. Проверьте подключение к интернету.')
+    console.error('fetchWords error:', error)
+    throw new Error('Ошибка загрузки задач. Проверьте подключение.')
   }
 }
 
-export async function postWord(task, token) {
+export async function postWord(task, uid) {
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(task),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || 'Ошибка создания задачи');
-    }
-
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      return task;
-    }
-
-    if (data.tasks && Array.isArray(data.tasks)) {
-      const newTask = data.tasks.find(t =>
-        t.title === task.title &&
-        t.topic === task.topic &&
-        t.date === task.date
-      );
-      if (newTask) {
-        return newTask;
-      }
-      return data.tasks[data.tasks.length - 1];
-    }
-
-    return task;
+    const docRef = await addDoc(tasksRef(uid), task)
+    return { _id: docRef.id, ...task }
   } catch (error) {
-    throw new Error(error.message || 'Ошибка создания задачи. Проверьте данные.');
+    console.error('postWord error:', error)
+    throw new Error('Ошибка создания задачи')
   }
 }
 
-export async function editWord(id, updatedTask, token) {
+export async function editWord(id, updatedTask, uid) {
   try {
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(updatedTask),
-    });
-
-    if (!response.ok) {
-      let errorText;
-      try {
-        const errorData = await response.json();
-        errorText = errorData.error || `Ошибка ${response.status}: Ошибка обновления задачи`;
-      } catch {
-        errorText = await response.text() || `Ошибка ${response.status}: Ошибка обновления задачи`;
-      }
-      throw new Error(errorText);
-    }
-
-    let data;
-    try {
-      data = await response.json();
-    } catch {
-      return updatedTask;
-    }
-
-    if (data.tasks && Array.isArray(data.tasks)) {
-      const updatedTaskFromServer = data.tasks.find(task => task._id === id);
-      if (updatedTaskFromServer) {
-        return updatedTaskFromServer;
-      }
-    }
-
-    return updatedTask;
+    if (!uid) throw new Error('Пользователь не авторизован')
+    const docRef = doc(db, 'users', uid, 'tasks', id)
+    await updateDoc(docRef, updatedTask)
+    return { _id: id, ...updatedTask }
   } catch (error) {
-    if (error.message.includes('Failed to fetch') || error.message.includes('HTTP2_PING_FAILED')) {
-      return updatedTask;
-    }
-    throw new Error(error.message || 'Ошибка обновления задачи. Возможно, задача была удалена.');
+    console.error('editWord error:', error)
+    throw new Error('Ошибка обновления задачи')
   }
 }
 
-export async function deleteWord(id, token) {
+export async function deleteWord(id, uid) {
   try {
-    const response = await fetch(`${API_URL}/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.error || 'Ошибка удаления задачи')
-    }
-
-    return await response.json()
+    if (!uid) throw new Error('Пользователь не авторизован')
+    const docRef = doc(db, 'users', uid, 'tasks', id)
+    await deleteDoc(docRef)
+    return { success: true }
   } catch (error) {
-    throw new Error(error.message || 'Ошибка удаления задачи. Попробуйте позже.')
+    console.error('deleteWord error:', error)
+    throw new Error('Ошибка удаления задачи')
   }
 }

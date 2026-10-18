@@ -1,51 +1,59 @@
-const API_URL = 'https://wedev-api.sky.pro/api/user'
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from 'firebase/auth'
+import { auth } from '@/firebase'
 
-export async function signIn(credentials) {
+// Вход — email
+export async function signIn({ login, password }) {
   try {
-    const response = await fetch(`${API_URL}/login`, {
-      method: 'POST',
-      body: JSON.stringify({
-        login: credentials.login,
-        password: credentials.password,
-      }),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.error || 'Неверный логин или пароль')
-    }
-
-    const data = await response.json()
+    const credential = await signInWithEmailAndPassword(auth, login, password)
     return {
-      user: data.user,
-      token: data.token || (data.user ? data.user.token : undefined),
+      user: {
+        id: credential.user.uid,
+        email: credential.user.email,
+        name: credential.user.displayName || '',
+      },
     }
   } catch (error) {
-    throw new Error(error.message || 'Ошибка авторизации')
+    throw new Error(translateError(error))
   }
 }
 
-export async function signUp(userData) {
+// Регистрация + сохранение имени
+export async function signUp({ name, login, password }) {
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        name: userData.name,
-        login: userData.login,
-        password: userData.password,
-      }),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      let errorMessage = 'Ошибка регистрации: '
-      if (errorData.error) errorMessage += errorData.error
-      if (errorData.errors) errorMessage += Object.values(errorData.errors).flat().join(', ')
-      throw new Error(errorMessage)
+    const credential = await createUserWithEmailAndPassword(auth, login, password)
+    await updateProfile(credential.user, { displayName: name })
+    return {
+      user: {
+        id: credential.user.uid,
+        email: credential.user.email,
+        name,
+      },
     }
-
-    return await response.json()
   } catch (error) {
-    throw new Error(error.message || 'Ошибка регистрации')
+    throw new Error(translateError(error))
   }
+}
+
+// Выход
+export async function logout() {
+  return signOut(auth)
+}
+
+// Перевод ошибок Firebase на русский
+function translateError(error) {
+  const map = {
+    'auth/email-already-in-use': 'Этот email уже зарегистрирован',
+    'auth/invalid-email': 'Некорректный email',
+    'auth/weak-password': 'Пароль слишком короткий (минимум 6 символов)',
+    'auth/user-not-found': 'Пользователь не найден',
+    'auth/wrong-password': 'Неверный пароль',
+    'auth/invalid-credential': 'Неверный email или пароль',
+    'auth/network-request-failed': 'Проблемы с сетью. Проверьте интернет',
+  }
+  return map[error.code] || error.message || 'Ошибка авторизации'
 }
